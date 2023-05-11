@@ -31,4 +31,8 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'nordigen' => [
+        'id' => env('NORDIGEN_SECRET_ID'),
+        'key' => env('NORDIGEN_SECRET_KEY'),
+    ],
 ];

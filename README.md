@@ -10,4 +10,4 @@ You'll then be able to categorize them and attach transactions to each other, li
 
 ## Tech Info
 
-The project uses Laravel and runs, in development, with Laravel Sail.
+The project uses Laravel and runs, in development, with Laravel Sail. Formatting is done with Laravel Pint.
