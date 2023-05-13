@@ -19,4 +19,11 @@ Route::get('/', function () {
 });
 
 Route::get('/nordigen', [PlaygroundController::class, 'createRequisition']);
-Route::get('/nordigen/callback', [PlaygroundController::class, 'handleRequisition']);
+Route::get('/nordigen/callback/{requisition}', [PlaygroundController::class, 'handleRequisition'])->name('nordigen.callback.requisition');
+Route::get('/nordigen/callback', function (Illuminate\Http\Request $request) {
+    // Convert /nordigen/callback?ref=xxx to /nordigen/callback/xxx so route model binding works
+    return redirect()->route(
+        'nordigen.callback.requisition',
+        ['requisition' => $request->input('ref')]
+    );
+});
