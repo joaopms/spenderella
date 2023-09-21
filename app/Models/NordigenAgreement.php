@@ -52,4 +52,9 @@ class NordigenAgreement extends Model
             'access_valid_until' => $this->accepted_at->addDays($accessValidForDays)->startOfDay(),
         ]);
     }
+
+    public function isLocallySaved(): bool
+    {
+        return $this->requisition->hasAccounts();
+    }
 }

@@ -42,4 +42,9 @@ class NordigenRequisition extends Model
     {
         return $this->hasMany(NordigenAccount::class, 'requisition_id');
     }
+
+    public function hasAccounts(): bool
+    {
+        return $this->accounts()->exists();
+    }
 }

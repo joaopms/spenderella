@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\NordigenAgreement;
 use App\Models\NordigenRequisition;
 use Exception;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Nordigen\NordigenPHP\API\NordigenClient;
 
 class PlaygroundController extends Controller
@@ -58,6 +60,13 @@ class PlaygroundController extends Controller
 
     public function handleRequisition(NordigenRequisition $requisition)
     {
+        // Prevent the agreement from being saved to the database more than once
+        if ($requisition->agreement->isLocallySaved()) {
+            Log::info('Agreement already in the database', ['requisitionId' => $requisition->id]);
+
+            return response()->noContent();
+        }
+
         $client = $this->getNordigenClient();
 
         // Get the requisition data from Nordigen
@@ -75,8 +84,6 @@ class PlaygroundController extends Controller
             throw new Exception("Agreement ID doesn't match");
         }
 
-        // TODO Check if the agreement is already saved; if so, skip
-
         // Get the agreement data from Nordigen
         $agreementData = $client->endUserAgreement->getEndUserAgreement($agreementId);
 
@@ -86,6 +93,7 @@ class PlaygroundController extends Controller
         // Note: update() can't be used here since "accepted_at" needs to be set for the mutator of "access_valid_for_days" to work, since it depends on "accepted_at"
         $requisition->agreement->accepted_at = $agreementData['accepted'];
         $requisition->agreement->access_valid_for_days = $agreementData['access_valid_for_days'];
+        $requisition->agreement->save();
 
         // Create the accounts
         // TODO Change this to: many account have many requisitions. This way, the user can modify the account details. Use the Nordigen ID to make sure we're dealing with the same account
@@ -103,7 +111,7 @@ class PlaygroundController extends Controller
 
         $requisition->load('accounts');
 
-        return [$requisition];
+        return response($requisition, Response::HTTP_CREATED);
     }
 
     public function getNordigenClient(): NordigenClient
