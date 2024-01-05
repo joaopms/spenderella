@@ -2,8 +2,11 @@
 
 namespace App\Integrations\Nordigen;
 
+use App\Models\NordigenAgreement;
+use App\Models\NordigenRequisition;
 use GuzzleHttp\ClientInterface;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class NordigenClient extends \Nordigen\NordigenPHP\API\NordigenClient
@@ -93,5 +96,48 @@ class NordigenClient extends \Nordigen\NordigenPHP\API\NordigenClient
         $refreshExpires = $response['refresh_expires'] - 1000;
         Cache::set(self::NORDIGEN_REFRESH_TOKEN, $refreshToken, $refreshExpires);
         Log::debug("Nordigen refresh token: SET $refreshExpires");
+    }
+
+    /**
+     * Creates a Nordigen requisition, saves it to the database, and returns it
+     */
+    public function newRequisition(): NordigenRequisition
+    {
+        $institutionId = NordigenClient::SANDBOX_INSTITUTION;
+
+        // Create the end user agreement
+        $agreementData = $this->endUserAgreement->createEndUserAgreement($institutionId);
+
+        DB::beginTransaction();
+
+        $agreement = NordigenAgreement::create([
+            'nordigen_id' => $agreementData['id'],
+            'institution_id' => $agreementData['institution_id'],
+            'nordigen_created_at' => $agreementData['created'],
+        ]);
+
+        // Create the requisition
+        $redirectUrl = config('app.url').'/nordigen/callback';
+        $agreementId = $agreement->nordigen_id;
+
+        $requisition = $agreement->requisition()->create();
+        $requisitionReference = $requisition->uuid;
+
+        $requisitionData = $this->requisition->createRequisition(
+            $redirectUrl,
+            $institutionId,
+            $agreementId,
+            $requisitionReference
+        );
+
+        $requisition->update([
+            'nordigen_id' => $requisitionData['id'],
+            'link' => $requisitionData['link'],
+            'nordigen_created_at' => $requisitionData['created'],
+        ]);
+
+        DB::commit();
+
+        return $requisition;
     }
 }

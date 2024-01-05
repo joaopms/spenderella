@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Integrations\Nordigen\NordigenClient;
-use App\Models\NordigenAgreement;
 use App\Models\NordigenRequisition;
 use Exception;
 use Illuminate\Http\Response;
@@ -18,42 +17,7 @@ class PlaygroundController extends Controller
     {
         $client = new NordigenClient();
 
-        $institutionId = NordigenClient::SANDBOX_INSTITUTION;
-
-        // Create the end user agreement
-        $agreementData = $client->endUserAgreement->createEndUserAgreement($institutionId);
-
-        DB::beginTransaction();
-
-        $agreement = NordigenAgreement::create([
-            'nordigen_id' => $agreementData['id'],
-            'institution_id' => $agreementData['institution_id'],
-            'nordigen_created_at' => $agreementData['created'],
-        ]);
-
-        // Create the requisition
-        $redirectUrl = config('app.url').'/nordigen/callback';
-        $agreementId = $agreement->nordigen_id;
-
-        $requisition = $agreement->requisition()->create();
-        $requisitionReference = $requisition->uuid;
-
-        $requisitionData = $client->requisition->createRequisition(
-            $redirectUrl,
-            $institutionId,
-            $agreementId,
-            $requisitionReference
-        );
-
-        $requisition->update([
-            'nordigen_id' => $requisitionData['id'],
-            'link' => $requisitionData['link'],
-            'nordigen_created_at' => $requisitionData['created'],
-        ]);
-
-        DB::commit();
-
-        return $requisition->link;
+        return $client->newRequisition()->link;
     }
 
     public function handleRequisition(NordigenRequisition $requisition)
