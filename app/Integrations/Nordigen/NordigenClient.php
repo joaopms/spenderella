@@ -2,36 +2,27 @@
 
 namespace App\Integrations\Nordigen;
 
-use App\Models\NordigenAgreement;
-use App\Models\NordigenRequisition;
 use GuzzleHttp\ClientInterface;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-class NordigenClient extends \Nordigen\NordigenPHP\API\NordigenClient
+class NordigenClient
 {
     public const SANDBOX_INSTITUTION = 'SANDBOXFINANCE_SFIN0000';
 
-    private const NORDIGEN_ACCESS_TOKEN = 'nordigen.access_token';
+    private const CACHE_ACCESS_TOKEN = 'nordigen.access_token';
 
-    private const NORDIGEN_REFRESH_TOKEN = 'nordigen.refresh_token';
+    private const CACHE_REFRESH_TOKEN = 'nordigen.refresh_token';
 
-    /**
-     * Initialize the client with values from the config and loads it with an access token
-     */
-    public function __construct(string $secretId = null, string $secretKey = null, ClientInterface $client = null)
+    private \Nordigen\NordigenPHP\API\NordigenClient $client;
+
+    public function __construct(string $secretId, string $secretKey, ClientInterface $clientInterface = null)
     {
-        parent::__construct(
-            $secretId ?? config('services.nordigen.id'),
-            $secretKey ?? config('services.nordigen.key'),
-            $client
-        );
-
+        $this->client = new \Nordigen\NordigenPHP\API\NordigenClient($secretId, $secretKey, $clientInterface);
         $this->initializeClient();
     }
 
-    private function initializeClient(): void
+    public function initializeClient(): void
     {
         $this->prepareAccessToken();
     }
@@ -42,10 +33,10 @@ class NordigenClient extends \Nordigen\NordigenPHP\API\NordigenClient
     private function prepareAccessToken(): void
     {
         // Use the cached access token, if available
-        if (Cache::has(self::NORDIGEN_ACCESS_TOKEN)) {
+        if (Cache::has(self::CACHE_ACCESS_TOKEN)) {
             Log::debug('Nordigen access token: HIT');
-            $accessToken = Cache::get(self::NORDIGEN_ACCESS_TOKEN);
-            $this->setAccessToken($accessToken);
+            $accessToken = Cache::get(self::CACHE_ACCESS_TOKEN);
+            $this->client->setAccessToken($accessToken);
 
             return;
         }
@@ -53,10 +44,10 @@ class NordigenClient extends \Nordigen\NordigenPHP\API\NordigenClient
         Log::debug('Nordigen access token: MISS');
 
         // If the access token is not available, try to use the refresh token to get a new one
-        if (Cache::has(self::NORDIGEN_REFRESH_TOKEN)) {
-            $refreshToken = Cache::get(self::NORDIGEN_REFRESH_TOKEN);
+        if (Cache::has(self::CACHE_REFRESH_TOKEN)) {
+            $refreshToken = Cache::get(self::CACHE_REFRESH_TOKEN);
             Log::debug('Nordigen refresh token: HIT');
-            $response = $this->refreshAccessToken($refreshToken);
+            $response = $this->client->refreshAccessToken($refreshToken);
 
             // Cache the new access token
             $this->cacheNewAccessToken($response);
@@ -67,7 +58,7 @@ class NordigenClient extends \Nordigen\NordigenPHP\API\NordigenClient
         Log::debug('Nordigen refresh token: MISS');
 
         // If no refresh token is available, create a brand-new access token and cache it
-        $response = $this->createAccessToken();
+        $response = $this->client->createAccessToken();
 
         // Cache the new access token
         $this->cacheNewAccessToken($response);
@@ -83,7 +74,7 @@ class NordigenClient extends \Nordigen\NordigenPHP\API\NordigenClient
     {
         $accessToken = $response['access'];
         $accessExpires = $response['access_expires'] - 1000;
-        Cache::set(self::NORDIGEN_ACCESS_TOKEN, $accessToken, $accessExpires);
+        Cache::set(self::CACHE_ACCESS_TOKEN, $accessToken, $accessExpires);
         Log::debug("Nordigen access token: SET $accessExpires");
     }
 
@@ -94,50 +85,42 @@ class NordigenClient extends \Nordigen\NordigenPHP\API\NordigenClient
     {
         $refreshToken = $response['refresh'];
         $refreshExpires = $response['refresh_expires'] - 1000;
-        Cache::set(self::NORDIGEN_REFRESH_TOKEN, $refreshToken, $refreshExpires);
+        Cache::set(self::CACHE_REFRESH_TOKEN, $refreshToken, $refreshExpires);
         Log::debug("Nordigen refresh token: SET $refreshExpires");
     }
 
-    /**
-     * Creates a Nordigen requisition, saves it to the database, and returns it
-     */
-    public function newRequisition(): NordigenRequisition
+    // End user agreements
+    // ---------------------------------------------------------------------------
+
+    public function getEndUserAgreement(string $agreementId): array
     {
-        $institutionId = NordigenClient::SANDBOX_INSTITUTION;
+        return $this->client->endUserAgreement->getEndUserAgreement($agreementId);
+    }
 
-        // Create the end user agreement
-        $agreementData = $this->endUserAgreement->createEndUserAgreement($institutionId);
+    // TODO Deprecate this method; end user agreements are automatically created if needed when a requisition is created
+    public function endUserAgreementCreate(string $institutionId): array
+    {
+        return $this->client->endUserAgreement->createEndUserAgreement($institutionId);
+    }
 
-        DB::beginTransaction();
+    // Requisitions
+    // ---------------------------------------------------------------------------
 
-        $agreement = NordigenAgreement::create([
-            'nordigen_id' => $agreementData['id'],
-            'institution_id' => $agreementData['institution_id'],
-            'nordigen_created_at' => $agreementData['created'],
-        ]);
+    public function requisitionGet(string $id): array
+    {
+        return $this->client->requisition->getRequisition($id);
+    }
 
-        // Create the requisition
-        $redirectUrl = config('app.url').'/nordigen/callback';
-        $agreementId = $agreement->nordigen_id;
+    public function requisitionCreate(string $redirectUrl, string $institutionId, string $agreementId, string $reference): array
+    {
+        return $this->client->requisition->createRequisition($redirectUrl, $institutionId, $agreementId, $reference);
+    }
 
-        $requisition = $agreement->requisition()->create();
-        $requisitionReference = $requisition->uuid;
+    // Accounts
+    // ---------------------------------------------------------------------------
 
-        $requisitionData = $this->requisition->createRequisition(
-            $redirectUrl,
-            $institutionId,
-            $agreementId,
-            $requisitionReference
-        );
-
-        $requisition->update([
-            'nordigen_id' => $requisitionData['id'],
-            'link' => $requisitionData['link'],
-            'nordigen_created_at' => $requisitionData['created'],
-        ]);
-
-        DB::commit();
-
-        return $requisition;
+    public function accountGetDetails(string $accountId): array
+    {
+        return $this->client->account($accountId)->getAccountDetails();
     }
 }

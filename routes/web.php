@@ -26,4 +26,4 @@ Route::get('/nordigen/callback', function (Illuminate\Http\Request $request) {
         'nordigen.callback.requisition',
         ['requisition' => $request->input('ref')]
     );
-});
+})->name('nordigen.callback');
