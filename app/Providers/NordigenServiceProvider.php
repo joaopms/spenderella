@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Exceptions\SpenderellaConfigException;
 use App\Integrations\Nordigen\NordigenClient;
 use App\Services\NordigenService;
 use Illuminate\Support\ServiceProvider;
@@ -14,10 +15,14 @@ class NordigenServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(NordigenService::class, function () {
-            $client = new NordigenClient(
-                config('services.nordigen.id'),
-                config('services.nordigen.key'),
-            );
+            $secretId = config('services.nordigen.id');
+            $secretKey = config('services.nordigen.key');
+
+            if (! $secretId || ! $secretKey) {
+                throw new SpenderellaConfigException('Unset secret values for Nordigen');
+            }
+
+            $client = new NordigenClient($secretId, $secretKey);
 
             return new NordigenService($client);
         });
