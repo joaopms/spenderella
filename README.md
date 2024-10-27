@@ -22,6 +22,9 @@ nix develop
 sail up -d
 ```
 
+When using PhpStorm, a remote PHP interpreter must be set-up and pointed to the `spenderella` container.
+The lifecycle must be set to "connect to existing container".
+
 
 ## Tech Info
 
