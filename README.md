@@ -15,10 +15,10 @@ You'll then be able to categorize them and attach transactions to each other, li
 Docker needs to be installed on the host system.
 
 ### If using NixOS
-Just run `nix-shell` and you'll have a shell set-up with PHP and Composer, along with a `sail` alias.
+Just run `nix develop` and you'll have a shell set-up with PHP and Composer, along with a `sail` alias.
 
 ```sh
-nix-shell
+nix develop
 sail up -d
 ```
 
