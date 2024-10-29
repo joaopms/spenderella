@@ -38,6 +38,7 @@ class PlaygroundController extends Controller
 
     public function syncTransactions(NordigenAccount $account)
     {
+        // TODO Turn this into a job
         $new = $this->nordigenService->syncTransactions($account);
         $all = $account->transactions;
 

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Exceptions\SpenderellaNordigenException;
+use App\Exceptions\SpenderellaNordigenUserException;
 use App\Integrations\Nordigen\NordigenClient;
 use App\Models\NordigenAccount;
 use App\Models\NordigenAgreement;
@@ -115,7 +116,7 @@ class NordigenService
         $requisition->agreement->save();
 
         // Create the accounts
-        // TODO Change this to: many accounts have many requisitions. This way, the user can modify the account details and re-use them when re-consenting (with another end user agreement and requisition). Use the Nordigen ID to make sure we're dealing with the same account
+        // TODO Change this to: many accounts have many requisitions. This way, the user can modify the account details and re-use them when re-consenting (with another end user agreement and requisition). Use the Nordigen ID to make sure we're dealing with the same account. This can be tested by restarting the whole process (by hitting /nordigen)
         foreach ($requisitionData['accounts'] as $accountId) {
             $accountData = $this->client->accountGetDetails($accountId)['account'];
 
@@ -135,7 +136,7 @@ class NordigenService
     /**
      * @throws SpenderellaNordigenException
      */
-    private function fetchTransactions(NordigenAccount $account): array
+    private function loadAndSaveTransactions(NordigenAccount $account): array
     {
         // Get the transactions from Nordigen
         $transactionsData = $this->client->accountGetTransactions($account->nordigen_id, null);
@@ -182,6 +183,12 @@ class NordigenService
                 'currency' => $data['transactionAmount']['currency'],
                 'description' => $data['remittanceInformationUnstructured'],
             ]);
+
+            Log::debug('Saving transaction', [
+                'account_id' => $account->id,
+                'bank_id' => $bankId,
+                'nordigen_id' => $nordigenId,
+            ]);
         }
 
         DB::commit();
@@ -190,10 +197,15 @@ class NordigenService
     }
 
     /**
-     * @throws SpenderellaNordigenException
+     * @throws SpenderellaNordigenUserException|SpenderellaNordigenException
      */
     public function syncTransactions(NordigenAccount $account): array
     {
+        // Check if we still have access to the account
+        if (! $account->canSyncTransactions()) {
+            throw new SpenderellaNordigenUserException('Please refresh access to the bank account');
+        }
+
         $dateFrom = null;
 
         // Since we only sync booked transactions, get those from the week before the last synced one
@@ -207,6 +219,6 @@ class NordigenService
             'account_id' => $account->id,
         ]);
 
-        return $this->fetchTransactions($account, $dateFrom);
+        return $this->loadAndSaveTransactions($account, $dateFrom);
     }
 }

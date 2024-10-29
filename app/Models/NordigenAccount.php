@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 
 class NordigenAccount extends Model
 {
@@ -42,5 +43,22 @@ class NordigenAccount extends Model
     public function transactions(): HasMany
     {
         return $this->hasMany(NordigenTransaction::class, 'account_id');
+    }
+
+    public function agreement(): HasOneThrough
+    {
+        return $this->hasOneThrough(
+            NordigenAgreement::class,
+            NordigenRequisition::class,
+            'agreement_id',
+            'id',
+            'requisition_id',
+            'agreement_id'
+        );
+    }
+
+    public function canSyncTransactions(): bool
+    {
+        return $this->agreement->isExpired();
     }
 }

@@ -57,4 +57,9 @@ class NordigenAgreement extends Model
     {
         return $this->requisition->hasAccounts();
     }
+
+    public function isExpired(): bool
+    {
+        return $this->access_valid_for_days;
+    }
 }
