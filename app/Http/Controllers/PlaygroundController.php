@@ -36,9 +36,9 @@ class PlaygroundController extends Controller
         return response(['updated' => $updated, 'requisition' => $requisition]);
     }
 
-    public function loadTransactions(NordigenAccount $account)
+    public function syncTransactions(NordigenAccount $account)
     {
-        $new = $this->nordigenService->fetchTransactions($account);
+        $new = $this->nordigenService->syncTransactions($account);
         $all = $account->transactions;
 
         return response(['new' => $new, 'all' => $all]);

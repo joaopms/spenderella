@@ -36,6 +36,11 @@ class NordigenTransaction extends Model
         'description',
     ];
 
+    protected $casts = [
+        'booking_date' => 'datetime',
+        'value_date' => 'datetime',
+    ];
+
     public function account(): BelongsTo
     {
         return $this->belongsTo(NordigenAccount::class);

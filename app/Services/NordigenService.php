@@ -135,10 +135,10 @@ class NordigenService
     /**
      * @throws SpenderellaNordigenException
      */
-    public function fetchTransactions(NordigenAccount $account): array
+    private function fetchTransactions(NordigenAccount $account): array
     {
+        // Get the transactions from Nordigen
         $transactionsData = $this->client->accountGetTransactions($account->nordigen_id, null);
-
         $bookedTransactionsData = $transactionsData['transactions']['booked'];
 
         DB::beginTransaction();
@@ -153,6 +153,7 @@ class NordigenService
                 throw new SpenderellaNordigenException('Transaction does not contain any ID');
             }
 
+            // Make sure the transaction is not in the database yet
             $transactionExists = $account->transactions();
             if ($bankId) {
                 $transactionExists = $transactionExists->where('bank_id', $bankId);
@@ -160,6 +161,7 @@ class NordigenService
             if ($nordigenId) {
                 $transactionExists = $transactionExists->where('nordigen_id', $nordigenId);
             }
+
             if ($transactionExists->exists()) {
                 Log::debug('Transaction already exists, skipping', [
                     'account_id' => $account->id,
@@ -170,6 +172,7 @@ class NordigenService
                 continue;
             }
 
+            // Save the transaction
             $transactions[] = $account->transactions()->create([
                 'bank_id' => $bankId,
                 'nordigen_id' => $nordigenId,
@@ -184,5 +187,26 @@ class NordigenService
         DB::commit();
 
         return $transactions;
+    }
+
+    /**
+     * @throws SpenderellaNordigenException
+     */
+    public function syncTransactions(NordigenAccount $account): array
+    {
+        $dateFrom = null;
+
+        // Since we only sync booked transactions, get those from the week before the last synced one
+        // That way, transactions should have enough time to get processed by the bank
+        $lastTransaction = $account->transactions()->latest()->first();
+        if ($lastTransaction) {
+            $dateFrom = $lastTransaction->booking_date->addDays(-7);
+        }
+
+        Log::debug($dateFrom ? "Getting transactions from $dateFrom" : 'Getting all transactions', [
+            'account_id' => $account->id,
+        ]);
+
+        return $this->fetchTransactions($account, $dateFrom);
     }
 }

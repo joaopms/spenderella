@@ -28,4 +28,4 @@ Route::get('/nordigen/callback', function (Illuminate\Http\Request $request) {
     );
 })->name('nordigen.callback');
 
-Route::get('/nordigen/account/{account}/transactions', [PlaygroundController::class, 'loadTransactions'])->name('nordigen.account.transactions');
+Route::get('/nordigen/account/{account}/transactions', [PlaygroundController::class, 'syncTransactions'])->name('nordigen.account.transactions');
