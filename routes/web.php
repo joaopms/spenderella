@@ -27,3 +27,5 @@ Route::get('/nordigen/callback', function (Illuminate\Http\Request $request) {
         ['requisition' => $request->input('ref')]
     );
 })->name('nordigen.callback');
+
+Route::get('/nordigen/account/{account}/transactions', [PlaygroundController::class, 'loadTransactions'])->name('nordigen.account.transactions');

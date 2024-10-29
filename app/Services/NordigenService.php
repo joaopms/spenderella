@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
+use App\Exceptions\SpenderellaNordigenException;
 use App\Integrations\Nordigen\NordigenClient;
+use App\Models\NordigenAccount;
 use App\Models\NordigenAgreement;
 use App\Models\NordigenRequisition;
 use Exception;
@@ -128,5 +130,59 @@ class NordigenService
         DB::commit();
 
         return true;
+    }
+
+    /**
+     * @throws SpenderellaNordigenException
+     */
+    public function fetchTransactions(NordigenAccount $account): array
+    {
+        $transactionsData = $this->client->accountGetTransactions($account->nordigen_id, null);
+
+        $bookedTransactionsData = $transactionsData['transactions']['booked'];
+
+        DB::beginTransaction();
+
+        $transactions = [];
+        foreach ($bookedTransactionsData as $data) {
+            $bankId = $data['transactionId'] ?? null;
+            $nordigenId = $data['internalTransactionId'] ?? null;
+
+            // Make sure the transaction has any type of ID
+            if (! $bankId && ! $nordigenId) {
+                throw new SpenderellaNordigenException('Transaction does not contain any ID');
+            }
+
+            $transactionExists = $account->transactions();
+            if ($bankId) {
+                $transactionExists = $transactionExists->where('bank_id', $bankId);
+            }
+            if ($nordigenId) {
+                $transactionExists = $transactionExists->where('nordigen_id', $nordigenId);
+            }
+            if ($transactionExists->exists()) {
+                Log::debug('Transaction already exists, skipping', [
+                    'account_id' => $account->id,
+                    'bank_id' => $bankId,
+                    'nordigen_id' => $nordigenId,
+                ]);
+
+                continue;
+            }
+
+            $transactions[] = $account->transactions()->create([
+                'bank_id' => $bankId,
+                'nordigen_id' => $nordigenId,
+                'booking_date' => $data['bookingDate'],
+                'value_date' => $data['valueDate'],
+                'amount' => floatval($data['transactionAmount']['amount']) * 100, // save as cents
+                'currency' => $data['transactionAmount']['currency'],
+                'description' => $data['remittanceInformationUnstructured'],
+            ]);
+        }
+
+        DB::commit();
+
+        return $transactions;
     }
 }

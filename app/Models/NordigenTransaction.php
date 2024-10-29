@@ -5,9 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class NordigenAccount extends Model
+class NordigenTransaction extends Model
 {
     use HasUuids;
 
@@ -28,19 +27,17 @@ class NordigenAccount extends Model
     }
 
     protected $fillable = [
+        'bank_id',
         'nordigen_id',
+        'booking_date',
+        'value_date',
+        'amount',
         'currency',
-        'iban',
-        'name',
+        'description',
     ];
 
-    public function requisition(): BelongsTo
+    public function account(): BelongsTo
     {
-        return $this->belongsTo(NordigenRequisition::class);
-    }
-
-    public function transactions(): HasMany
-    {
-        return $this->hasMany(NordigenTransaction::class, 'account_id');
+        return $this->belongsTo(NordigenAccount::class);
     }
 }

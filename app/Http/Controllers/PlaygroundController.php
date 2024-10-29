@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Integrations\Nordigen\NordigenClient;
+use App\Models\NordigenAccount;
 use App\Models\NordigenRequisition;
 use App\Services\NordigenService;
 
@@ -33,5 +34,13 @@ class PlaygroundController extends Controller
         $requisition->load('accounts');
 
         return response(['updated' => $updated, 'requisition' => $requisition]);
+    }
+
+    public function loadTransactions(NordigenAccount $account)
+    {
+        $new = $this->nordigenService->fetchTransactions($account);
+        $all = $account->transactions;
+
+        return response(['new' => $new, 'all' => $all]);
     }
 }

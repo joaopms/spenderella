@@ -123,4 +123,9 @@ class NordigenClient
     {
         return $this->client->account($accountId)->getAccountDetails();
     }
+
+    public function accountGetTransactions(string $accountId, ?string $dateFrom): array
+    {
+        return $this->client->account($accountId)->getAccountTransactions($dateFrom);
+    }
 }
