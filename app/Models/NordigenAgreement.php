@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
@@ -55,11 +56,11 @@ class NordigenAgreement extends Model
 
     public function isLocallySaved(): bool
     {
-        return $this->requisition->hasAccounts();
+        return (bool) $this->accepted_at;
     }
 
     public function isExpired(): bool
     {
-        return $this->access_valid_for_days;
+        return $this->access_valid_until->lessThanOrEqualTo(Carbon::now());
     }
 }

@@ -8,7 +8,6 @@ use App\Integrations\Nordigen\NordigenClient;
 use App\Models\NordigenAccount;
 use App\Models\NordigenAgreement;
 use App\Models\NordigenRequisition;
-use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -69,6 +68,11 @@ class NordigenService
 
         DB::commit();
 
+        Log::debug('New agreement and requisition created', [
+            'agreement_id' => $agreement->id,
+            'requisition_id' => $requisition->id,
+        ]);
+
         return $requisition;
     }
 
@@ -78,7 +82,7 @@ class NordigenService
      *
      * @return bool Returns `false` if the agreement was already updated
      *
-     * @throws Exception
+     * @throws SpenderellaNordigenException
      */
     public function updateAfterUserConsent(NordigenRequisition $requisition): bool
     {
@@ -95,13 +99,13 @@ class NordigenService
         // Check if the requisition is at the state we expect
         $status = $requisitionData['status'];
         if ($status !== self::REQUISITION_STATUS_LINKED) {
-            throw new Exception("Account(s) not linked, got status $status");
+            throw new SpenderellaNordigenException("Account(s) not linked, got status $status");
         }
 
         // Check if the agreement ID is correct
         $agreementId = $requisition->agreement->nordigen_id;
         if ($requisitionData['agreement'] !== $agreementId) {
-            throw new Exception("Agreement ID doesn't match");
+            throw new SpenderellaNordigenException("Agreement ID doesn't match");
         }
 
         // Get the agreement data from Nordigen
@@ -115,17 +119,35 @@ class NordigenService
         $requisition->agreement->access_valid_for_days = $agreementData['access_valid_for_days'];
         $requisition->agreement->save();
 
-        // Create the accounts
-        // TODO Change this to: many accounts have many requisitions. This way, the user can modify the account details and re-use them when re-consenting (with another end user agreement and requisition). Use the Nordigen ID to make sure we're dealing with the same account. This can be tested by restarting the whole process (by hitting /nordigen)
+        // Create the accounts, if needed
         foreach ($requisitionData['accounts'] as $accountId) {
             $accountData = $this->client->accountGetDetails($accountId)['account'];
 
-            $requisition->accounts()->create([
-                'nordigen_id' => $accountId,
-                'currency' => $accountData['currency'],
-                'iban' => $accountData['iban'] ?? null,
-                'name' => $accountData['name'] ?? null,
-            ]);
+            // Check if the account already exists
+            $account = NordigenAccount::where('nordigen_id', $accountId)->first();
+            if ($account) {
+                $account->requisitions()->attach($requisition);
+
+                Log::debug('Account already exists, attaching new requisition', [
+                    'requisition_id' => $requisition->id,
+                    'account_id' => $accountId,
+                ]);
+
+                continue;
+            } else {
+                // Create the account
+                $requisition->accounts()->create([
+                    'nordigen_id' => $accountId,
+                    'currency' => $accountData['currency'],
+                    'iban' => $accountData['iban'] ?? null,
+                    'name' => $accountData['name'] ?? null,
+                ]);
+
+                Log::debug('Account created', [
+                    'requisition_id' => $requisition->id,
+                    'account_id' => $accountId,
+                ]);
+            }
         }
 
         DB::commit();
@@ -206,14 +228,10 @@ class NordigenService
             throw new SpenderellaNordigenUserException('Please refresh access to the bank account');
         }
 
-        $dateFrom = null;
-
         // Since we only sync booked transactions, get those from the week before the last synced one
         // That way, transactions should have enough time to get processed by the bank
         $lastTransaction = $account->transactions()->latest()->first();
-        if ($lastTransaction) {
-            $dateFrom = $lastTransaction->booking_date->addDays(-7);
-        }
+        $dateFrom = $lastTransaction?->booking_date->addDays(-7);
 
         Log::debug($dateFrom ? "Getting transactions from $dateFrom" : 'Getting all transactions', [
             'account_id' => $account->id,

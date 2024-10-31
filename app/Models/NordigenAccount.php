@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 
 class NordigenAccount extends Model
 {
@@ -35,9 +35,14 @@ class NordigenAccount extends Model
         'name',
     ];
 
-    public function requisition(): BelongsTo
+    public function requisitions(): BelongsToMany
     {
-        return $this->belongsTo(NordigenRequisition::class);
+        return $this->belongsToMany(
+            NordigenRequisition::class,
+            'nordigen_accounts_requisitions',
+            'account_id',
+            'requisition_id',
+        );
     }
 
     public function transactions(): HasMany
@@ -45,20 +50,23 @@ class NordigenAccount extends Model
         return $this->hasMany(NordigenTransaction::class, 'account_id');
     }
 
-    public function agreement(): HasOneThrough
+    public function getAgreements(): Builder
     {
-        return $this->hasOneThrough(
-            NordigenAgreement::class,
-            NordigenRequisition::class,
-            'agreement_id',
-            'id',
-            'requisition_id',
-            'agreement_id'
-        );
+        return NordigenAgreement::whereHas('requisition.accounts', function (Builder $query) {
+            $query->where('nordigen_accounts.id', $this->id);
+        });
+    }
+
+    public function getLastAgreement(): NordigenAgreement
+    {
+        /** @var NordigenAgreement $latest */
+        $latest = $this->getAgreements()->latest()->first();
+
+        return $latest;
     }
 
     public function canSyncTransactions(): bool
     {
-        return $this->agreement->isExpired();
+        return $this->getLastAgreement()->isExpired();
     }
 }

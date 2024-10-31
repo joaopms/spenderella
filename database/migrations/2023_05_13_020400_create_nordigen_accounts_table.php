@@ -12,8 +12,6 @@ return new class extends Migration
             $table->id('id');
             $table->uuid('uuid')->unique();
 
-            $table->foreignId('requisition_id')->constrained('nordigen_requisitions');
-
             $table->string('nordigen_id');
             $table->string('currency', 3);
 
@@ -22,10 +20,16 @@ return new class extends Migration
 
             $table->timestamps();
         });
+
+        Schema::create('nordigen_accounts_requisitions', function (Blueprint $table) {
+            $table->foreignId('account_id')->constrained('nordigen_accounts');
+            $table->foreignId('requisition_id')->constrained('nordigen_requisitions');
+        });
     }
 
     public function down(): void
     {
+        Schema::dropIfExists('nordigen_accounts_requisitions');
         Schema::dropIfExists('nordigen_accounts');
     }
 };
