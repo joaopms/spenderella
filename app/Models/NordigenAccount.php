@@ -67,6 +67,6 @@ class NordigenAccount extends Model
 
     public function canSyncTransactions(): bool
     {
-        return $this->getLastAgreement()->isExpired();
+        return ! $this->getLastAgreement()->isExpired();
     }
 }

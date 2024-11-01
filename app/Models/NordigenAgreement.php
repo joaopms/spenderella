@@ -38,6 +38,7 @@ class NordigenAgreement extends Model
     protected $casts = [
         'nordigen_created_at' => 'datetime',
         'accepted_at' => 'datetime',
+        'access_valid_until' => 'datetime',
     ];
 
     public function requisition(): HasOne
@@ -61,6 +62,6 @@ class NordigenAgreement extends Model
 
     public function isExpired(): bool
     {
-        return $this->access_valid_until->lessThanOrEqualTo(Carbon::now());
+        return $this->access_valid_until && $this->access_valid_until->lessThanOrEqualTo(Carbon::now());
     }
 }

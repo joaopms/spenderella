@@ -36,12 +36,22 @@ class PlaygroundController extends Controller
         return response(['updated' => $updated, 'requisition' => $requisition]);
     }
 
-    public function syncTransactions(NordigenAccount $account)
+    public function syncAccount(NordigenAccount $account)
     {
-        // TODO Turn this into a job
-        $new = $this->nordigenService->syncTransactions($account);
+        $new = $this->nordigenService->syncAccount($account);
         $all = $account->transactions;
 
         return response(['new' => $new, 'all' => $all]);
+    }
+
+    // TODO Turn this into a job
+    public function syncAllAccounts()
+    {
+        $result = $this->nordigenService->syncAllAccounts();
+
+        return [
+            'errors' => $result->getErrorMessagesByAccountId(),
+            'success' => $result->getTransactionsByAccountId(),
+        ];
     }
 }

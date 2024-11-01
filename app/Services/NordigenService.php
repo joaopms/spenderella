@@ -2,12 +2,15 @@
 
 namespace App\Services;
 
+use App\DTO\NordigenSyncDTO;
 use App\Exceptions\SpenderellaNordigenException;
 use App\Exceptions\SpenderellaNordigenUserException;
 use App\Integrations\Nordigen\NordigenClient;
 use App\Models\NordigenAccount;
 use App\Models\NordigenAgreement;
 use App\Models\NordigenRequisition;
+use App\Models\NordigenTransaction;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -166,6 +169,7 @@ class NordigenService
 
         DB::beginTransaction();
 
+        /** @var NordigenTransaction[] $transactions */
         $transactions = [];
         foreach ($bookedTransactionsData as $data) {
             $bankId = $data['transactionId'] ?? null;
@@ -221,7 +225,7 @@ class NordigenService
     /**
      * @throws SpenderellaNordigenUserException|SpenderellaNordigenException
      */
-    public function syncTransactions(NordigenAccount $account): array
+    public function syncAccount(NordigenAccount $account): array
     {
         // Check if we still have access to the account
         if (! $account->canSyncTransactions()) {
@@ -238,5 +242,28 @@ class NordigenService
         ]);
 
         return $this->loadAndSaveTransactions($account, $dateFrom);
+    }
+
+    public function syncAllAccounts()
+    {
+        $accounts = NordigenAccount::all();
+
+        $newTransactions = new Collection();
+        $errors = [];
+
+        foreach ($accounts as $account) {
+            try {
+                $newTransactions = $newTransactions->merge($this->syncAccount($account));
+            } catch (\Exception $exception) {
+                Log::debug('Error syncing account', [
+                    'account_id' => $account->id,
+                    'exception' => $exception->getMessage(),
+                ]);
+
+                $errors[$account->id] = $exception;
+            }
+        }
+
+        return new NordigenSyncDTO($newTransactions, $errors);
     }
 }
