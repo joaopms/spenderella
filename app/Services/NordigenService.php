@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\DTO\NordigenSyncDTO;
+use App\DTO\NordigenSyncResultsDTO;
 use App\Exceptions\SpenderellaNordigenException;
 use App\Exceptions\SpenderellaNordigenUserException;
 use App\Integrations\Nordigen\NordigenClient;
@@ -10,7 +10,6 @@ use App\Models\NordigenAccount;
 use App\Models\NordigenAgreement;
 use App\Models\NordigenRequisition;
 use App\Models\NordigenTransaction;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -244,26 +243,24 @@ class NordigenService
         return $this->loadAndSaveTransactions($account, $dateFrom);
     }
 
-    public function syncAllAccounts()
+    public function syncAllAccounts(): NordigenSyncResultsDTO
     {
-        $accounts = NordigenAccount::all();
+        $results = new NordigenSyncResultsDTO();
 
-        $newTransactions = new Collection();
-        $errors = [];
-
-        foreach ($accounts as $account) {
+        foreach (NordigenAccount::all() as $account) {
             try {
-                $newTransactions = $newTransactions->merge($this->syncAccount($account));
-            } catch (\Exception $exception) {
+                $transactions = $this->syncAccount($account);
+                $results->addSuccess($account, $transactions);
+            } catch (\Throwable $exception) {
                 Log::debug('Error syncing account', [
                     'account_id' => $account->id,
                     'exception' => $exception->getMessage(),
                 ]);
 
-                $errors[$account->id] = $exception;
+                $results->addFail($account, $exception);
             }
         }
 
-        return new NordigenSyncDTO($newTransactions, $errors);
+        return $results;
     }
 }

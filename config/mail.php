@@ -122,4 +122,8 @@ return [
         ],
     ],
 
+    // Who to send emails to
+
+    'receiver' => env('MAIL_TO_ADDRESS'),
+
 ];

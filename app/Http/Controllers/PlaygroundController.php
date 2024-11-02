@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Integrations\Nordigen\NordigenClient;
+use App\Jobs\NordigenSyncAllAccounts;
 use App\Models\NordigenAccount;
 use App\Models\NordigenRequisition;
 use App\Services\NordigenService;
@@ -44,14 +45,10 @@ class PlaygroundController extends Controller
         return response(['new' => $new, 'all' => $all]);
     }
 
-    // TODO Turn this into a job
     public function syncAllAccounts()
     {
-        $result = $this->nordigenService->syncAllAccounts();
+        NordigenSyncAllAccounts::dispatch();
 
-        return [
-            'errors' => $result->getErrorMessagesByAccountId(),
-            'success' => $result->getTransactionsByAccountId(),
-        ];
+        return 'Done.';
     }
 }

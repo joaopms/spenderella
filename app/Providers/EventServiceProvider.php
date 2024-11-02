@@ -18,6 +18,13 @@ class EventServiceProvider extends ServiceProvider
         Registered::class => [
             SendEmailVerificationNotification::class,
         ],
+
+        NordigenAccountsSynced::class => [
+            SendNordigenSyncedNotification::class,
+        ],
+        NordigenAccountsSyncFailed::class => [
+            SendNordigenSyncFailNotification::class,
+        ],
     ];
 
     /**

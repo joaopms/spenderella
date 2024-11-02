@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use NumberFormatter;
 
 class NordigenTransaction extends Model
 {
@@ -44,5 +46,16 @@ class NordigenTransaction extends Model
     public function account(): BelongsTo
     {
         return $this->belongsTo(NordigenAccount::class);
+    }
+
+    public function humanAmount(): Attribute
+    {
+        return Attribute::make(
+            get: function ($ignored, array $attributes) {
+                $formatter = new NumberFormatter(config('app.format_locale'), NumberFormatter::CURRENCY);
+
+                return $formatter->formatCurrency($attributes['amount'] / 100, $this->currency);
+            }
+        );
     }
 }
