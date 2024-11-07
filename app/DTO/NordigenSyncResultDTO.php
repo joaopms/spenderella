@@ -18,6 +18,7 @@ class NordigenSyncResultDTO
 
     private bool $success;
 
+    /** @var NordigenTransaction[] */
     public array $transactions;
 
     public NordigenAccount $account;
@@ -54,7 +55,7 @@ class NordigenSyncResultDTO
 
     public function hasTransactions(): bool
     {
-        return count($this->transactions) > 0;
+        return count($this->transactionIds) > 0;
     }
 
     public function isSuccess(): bool

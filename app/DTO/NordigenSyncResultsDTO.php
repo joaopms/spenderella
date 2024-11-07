@@ -55,10 +55,16 @@ class NordigenSyncResultsDTO
         $transactionsToLoad = collect($this->results)->flatMap(
             fn (NordigenSyncResultDTO $result) => $result->transactionIds
         );
-        $transactions = NordigenTransaction::findMany($transactionsToLoad);
+        $allTransactions = NordigenTransaction::findMany($transactionsToLoad);
 
         foreach ($this->results as $result) {
-            $transactions = $transactions->whereIn('id', $result->transactionIds);
+            // Skip if we don't have transactions
+            $transactionIds = $result->transactionIds;
+            if (count($transactionIds) < 1) {
+                continue;
+            }
+
+            $transactions = $allTransactions->whereIn('id', $transactionIds)->all();
             $result->setTransactions($transactions);
         }
     }
