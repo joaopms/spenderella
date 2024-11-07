@@ -2,6 +2,7 @@
 
 namespace App\Integrations\Nordigen;
 
+use App\Exceptions\SpenderellaNordigenException;
 use GuzzleHttp\ClientInterface;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -16,12 +17,18 @@ class NordigenClient
 
     private \Nordigen\NordigenPHP\API\NordigenClient $client;
 
+    /**
+     * @throws SpenderellaNordigenException
+     */
     public function __construct(string $secretId, string $secretKey, ClientInterface $clientInterface = null)
     {
         $this->client = new \Nordigen\NordigenPHP\API\NordigenClient($secretId, $secretKey, $clientInterface);
         $this->initializeClient();
     }
 
+    /**
+     * @throws SpenderellaNordigenException
+     */
     public function initializeClient(): void
     {
         $this->prepareAccessToken();
@@ -29,6 +36,8 @@ class NordigenClient
 
     /**
      * Loads the access token from cache, renewing (or creating) it if necessary
+     *
+     * @throws SpenderellaNordigenException
      */
     private function prepareAccessToken(): void
     {
@@ -47,6 +56,7 @@ class NordigenClient
         if (Cache::has(self::CACHE_REFRESH_TOKEN)) {
             $refreshToken = Cache::get(self::CACHE_REFRESH_TOKEN);
             Log::debug('Nordigen refresh token: HIT');
+
             $response = $this->client->refreshAccessToken($refreshToken);
 
             // Cache the new access token

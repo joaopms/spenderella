@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Providers;
+namespace App\Listeners;
 
+use App\Events\NordigenAccountsSynced;
 use App\Mail\NordigenSyncSuccess;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Log;

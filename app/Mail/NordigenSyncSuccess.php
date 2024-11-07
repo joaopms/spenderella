@@ -15,7 +15,7 @@ class NordigenSyncSuccess extends Mailable
 
     public function __construct(public NordigenSyncResultsDTO $results)
     {
-        $this->results->hydrateAccounts();
+        $this->results->hydrate();
     }
 
     public function envelope(): Envelope

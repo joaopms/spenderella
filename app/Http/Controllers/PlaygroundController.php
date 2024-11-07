@@ -20,6 +20,7 @@ class PlaygroundController extends Controller
     public function createRequisition()
     {
         $requisition = $this->nordigenService->newRequisition(
+            // TODO Allow this to be changed
             NordigenClient::SANDBOX_INSTITUTION
         );
 

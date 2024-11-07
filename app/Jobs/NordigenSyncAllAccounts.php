@@ -2,10 +2,8 @@
 
 namespace App\Jobs;
 
-use App\DTO\NordigenSyncResultsDTO;
-use App\Models\NordigenAccount;
-use App\Providers\NordigenAccountsSynced;
-use App\Providers\NordigenAccountsSyncFailed;
+use App\Events\NordigenAccountsSynced;
+use App\Events\NordigenAccountsSyncFailed;
 use App\Services\NordigenService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;

@@ -38,8 +38,9 @@ class NordigenSyncResultsDTO
         $this->addResult($result);
     }
 
-    public function hydrateAccounts(): void
+    public function hydrate(): void
     {
+        // Load accounts
         $accountsToLoad = collect($this->results)->map(
             fn (NordigenSyncResultDTO $result) => $result->accountId
         );
@@ -49,6 +50,17 @@ class NordigenSyncResultsDTO
             $account = $accounts->firstWhere('id', $result->accountId);
             $result->setAccount($account);
         }
+
+        // Load transactions
+        $transactionsToLoad = collect($this->results)->flatMap(
+            fn (NordigenSyncResultDTO $result) => $result->transactionIds
+        );
+        $transactions = NordigenTransaction::findMany($transactionsToLoad);
+
+        foreach ($this->results as $result) {
+            $transactions = $transactions->whereIn('id', $result->transactionIds);
+            $result->setTransactions($transactions);
+        }
     }
 
     /**
@@ -57,7 +69,7 @@ class NordigenSyncResultsDTO
     public function getSuccesses(): Collection
     {
         return collect($this->results)
-            ->filter(fn (NordigenSyncResultDTO $result) => $result->isSuccess());
+            ->filter(fn (NordigenSyncResultDTO $result) => $result->isSuccess() && $result->hasTransactions());
     }
 
     /**
@@ -75,7 +87,7 @@ class NordigenSyncResultsDTO
     public function getAll(bool $hydrated = true): Collection
     {
         if ($hydrated) {
-            $this->hydrateAccounts();
+            $this->hydrate();
         }
 
         return collect($this->results);

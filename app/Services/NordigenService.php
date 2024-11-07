@@ -12,6 +12,7 @@ use App\Models\NordigenRequisition;
 use App\Models\NordigenTransaction;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class NordigenService
 {
@@ -251,7 +252,7 @@ class NordigenService
             try {
                 $transactions = $this->syncAccount($account);
                 $results->addSuccess($account, $transactions);
-            } catch (\Throwable $exception) {
+            } catch (Throwable $exception) {
                 Log::debug('Error syncing account', [
                     'account_id' => $account->id,
                     'exception' => $exception->getMessage(),

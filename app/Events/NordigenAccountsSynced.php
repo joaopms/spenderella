@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Providers;
+namespace App\Events;
 
 use App\DTO\NordigenSyncResultsDTO;
 use Illuminate\Foundation\Events\Dispatchable;

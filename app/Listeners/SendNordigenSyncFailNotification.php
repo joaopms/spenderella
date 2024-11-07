@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Providers;
+namespace App\Listeners;
 
+use App\Events\NordigenAccountsSyncFailed;
 use App\Mail\NordigenSyncFail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
