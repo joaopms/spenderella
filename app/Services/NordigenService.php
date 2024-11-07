@@ -252,6 +252,8 @@ class NordigenService
             }
 
             // Save the transaction
+            $description = $data['remittanceInformationUnstructured']
+                ?? implode(' ', $data['remittanceInformationUnstructuredArray'] ?? []);
             $transactions[] = $account->transactions()->create([
                 'bank_id' => $bankId,
                 'nordigen_id' => $nordigenId,
@@ -259,7 +261,7 @@ class NordigenService
                 'value_date' => $data['valueDate'],
                 'amount' => floatval($data['transactionAmount']['amount']) * 100, // save as cents
                 'currency' => $data['transactionAmount']['currency'],
-                'description' => $data['remittanceInformationUnstructured'],
+                'description' => $description,
             ]);
 
             Log::debug('Saving transaction', [
