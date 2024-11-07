@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Integrations\Nordigen\NordigenClient;
 use App\Jobs\NordigenSyncAllAccounts;
 use App\Models\NordigenAccount;
 use App\Models\NordigenRequisition;
@@ -17,12 +16,18 @@ class PlaygroundController extends Controller
         $this->nordigenService = $nordigenService;
     }
 
-    public function createRequisition()
+    public function listInstitutions()
     {
-        $requisition = $this->nordigenService->newRequisition(
-            // TODO Allow this to be changed
-            NordigenClient::SANDBOX_INSTITUTION
-        );
+        $institutions = $this->nordigenService->listAllInstitutions();
+
+        return view('accounts.new', [
+            'institutionsByCountry' => $institutions,
+        ]);
+    }
+
+    public function createRequisition(string $institutionId)
+    {
+        $requisition = $this->nordigenService->newRequisition($institutionId);
 
         return redirect($requisition->link);
     }

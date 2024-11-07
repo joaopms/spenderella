@@ -18,7 +18,9 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/nordigen', [PlaygroundController::class, 'createRequisition']);
+Route::get('/accounts/new', [PlaygroundController::class, 'listInstitutions'])->name('accounts.new');
+
+Route::get('/nordigen/new/{institutionId}', [PlaygroundController::class, 'createRequisition'])->name('nordigen.new');
 Route::get('/nordigen/callback/{requisition}', [PlaygroundController::class, 'handleRequisition'])->name('nordigen.callback.requisition');
 Route::get('/nordigen/callback', function (Illuminate\Http\Request $request) {
     // Convert /nordigen/callback?ref=xxx to /nordigen/callback/xxx so route model binding works

@@ -10,6 +10,8 @@ use App\Models\NordigenAccount;
 use App\Models\NordigenAgreement;
 use App\Models\NordigenRequisition;
 use App\Models\NordigenTransaction;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -18,17 +20,60 @@ class NordigenService
 {
     const REQUISITION_STATUS_LINKED = 'LN';
 
+    private const CACHE_INSTITUTIONS = 'nordigen.institutions';
+
     public function __construct(protected NordigenClient $client)
     {
     }
 
     /**
+     * Returns all supported institutions, grouped and sorted by country code
+     */
+    public function listAllInstitutions(): array
+    {
+        // Return cached data, if available
+        if (Cache::has(self::CACHE_INSTITUTIONS)) {
+            Log::debug('Institutions list: HIT');
+
+            return Cache::get(self::CACHE_INSTITUTIONS);
+        }
+
+        Log::debug('Institutions list: MISS');
+
+        // Get the data
+        $institutions = $this->client->getAllInstitutions();
+        $cleanInstitutions = $this->cleanInstitutions($institutions);
+
+        // Cache the data
+        Cache::set(self::CACHE_INSTITUTIONS, $cleanInstitutions, now()->addDay());
+        Log::debug('Institutions list: SET');
+
+        return $cleanInstitutions;
+    }
+
+    /**
+     * Groups and sorts institutions by countries and removes redundant data
+     */
+    private function cleanInstitutions(array $institutions): array
+    {
+        return collect($institutions)
+            ->groupBy('countries')
+            ->sortKeys()
+            ->map(
+                fn (Collection $country) => $country->map(
+                    fn (array $institution) => collect($institution)->forget('countries')->all()
+                )
+            )
+            ->all();
+    }
+
+    /**
      * Creates a Nordigen end user agreement and save it to the database
      */
-    public function createEndUserAgreement(string $institutionId): NordigenAgreement
+    public function createEndUserAgreement(string $institutionId, int $daysOfAccess): NordigenAgreement
     {
         // Create the end user agreement on Nordigen's side
-        $agreementData = $this->client->endUserAgreementCreate($institutionId);
+        $agreementData = $this->client->endUserAgreementCreate($institutionId, $daysOfAccess);
 
         $agreement = NordigenAgreement::create([
             'nordigen_id' => $agreementData['id'],
@@ -46,8 +91,15 @@ class NordigenService
     {
         DB::beginTransaction();
 
+        // Get the maximum days of access for this institution
+        $institution = collect($this->listAllInstitutions())
+            ->lazy()
+            ->flatten(1)
+            ->firstOrFail('id', $institutionId);
+        $daysOfAccess = (int) $institution['max_access_valid_for_days'];
+
         // Create the end user agreement
-        $agreement = $this->createEndUserAgreement($institutionId);
+        $agreement = $this->createEndUserAgreement($institutionId, $daysOfAccess);
         $agreement->save(); // Saving so we can use the ID when creating the requisition
 
         // Create the requisition

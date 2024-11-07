@@ -90,6 +90,13 @@ class NordigenClient
         Log::debug("Nordigen refresh token: SET $refreshExpires");
     }
 
+    // Institutions
+    // ---------------------------------------------------------------------------
+    public function getAllInstitutions(): array
+    {
+        return $this->client->institution->getInstitutions();
+    }
+
     // End user agreements
     // ---------------------------------------------------------------------------
 
@@ -98,10 +105,9 @@ class NordigenClient
         return $this->client->endUserAgreement->getEndUserAgreement($agreementId);
     }
 
-    // TODO Deprecate this method; end user agreements are automatically created if needed when a requisition is created
-    public function endUserAgreementCreate(string $institutionId): array
+    public function endUserAgreementCreate(string $institutionId, int $daysOfAccess): array
     {
-        return $this->client->endUserAgreement->createEndUserAgreement($institutionId);
+        return $this->client->endUserAgreement->createEndUserAgreement($institutionId, accessValidForDays: $daysOfAccess);
     }
 
     // Requisitions
