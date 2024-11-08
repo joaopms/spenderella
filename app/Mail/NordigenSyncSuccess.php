@@ -2,7 +2,7 @@
 
 namespace App\Mail;
 
-use App\DTO\NordigenSyncResultsDTO;
+use App\Models\NordigenSyncResult;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
@@ -13,9 +13,15 @@ class NordigenSyncSuccess extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public function __construct(public NordigenSyncResultsDTO $results)
-    {
-        $this->results->hydrate();
+    /**
+     * @param  NordigenSyncResult[]  $successes
+     * @param  NordigenSyncResult[]  $fails
+     */
+    public function __construct(
+        private readonly array $successes,
+        private readonly array $fails,
+        private readonly int $numTransactions
+    ) {
     }
 
     public function envelope(): Envelope
@@ -30,8 +36,9 @@ class NordigenSyncSuccess extends Mailable
         return new Content(
             markdown: 'mail.nordigen.sync-success',
             with: [
-                'fails' => $this->results->getFails(),
-                'successes' => $this->results->getSuccesses(),
+                'fails' => $this->fails,
+                'successes' => $this->successes,
+                'numTransactions' => $this->numTransactions,
             ]
         );
     }

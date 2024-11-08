@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\DTO\NordigenSyncResultsDTO;
 use App\Exceptions\SpenderellaNordigenException;
 use App\Exceptions\SpenderellaNordigenUserException;
 use App\Integrations\Nordigen\NordigenClient;
@@ -10,11 +9,11 @@ use App\Models\NordigenAccount;
 use App\Models\NordigenAgreement;
 use App\Models\NordigenRequisition;
 use App\Models\NordigenTransaction;
+use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Throwable;
 
 class NordigenService
 {
@@ -215,6 +214,16 @@ class NordigenService
      */
     private function loadAndSaveTransactions(NordigenAccount $account): array
     {
+        //        if (rand(0, 100) > 70) {
+        //            // Succeed 70% of the times
+        //            return $account
+        //                ->transactions()->take(rand(0, 3))
+        //                ->get()
+        //                ->all();
+        //        } else {
+        //            throw new Exception('Get rekt noob');
+        //        }
+
         // Get the transactions from Nordigen
         $transactionsData = $this->client->accountGetTransactions($account->nordigen_id, null);
         $bookedTransactionsData = $transactionsData['transactions']['booked'];
@@ -296,26 +305,5 @@ class NordigenService
         ]);
 
         return $this->loadAndSaveTransactions($account, $dateFrom);
-    }
-
-    public function syncAllAccounts(): NordigenSyncResultsDTO
-    {
-        $results = new NordigenSyncResultsDTO();
-
-        foreach (NordigenAccount::all() as $account) {
-            try {
-                $transactions = $this->syncAccount($account);
-                $results->addSuccess($account, $transactions);
-            } catch (Throwable $exception) {
-                Log::debug('Error syncing account', [
-                    'account_id' => $account->id,
-                    'exception' => $exception->getMessage(),
-                ]);
-
-                $results->addFail($account, $exception);
-            }
-        }
-
-        return $results;
     }
 }

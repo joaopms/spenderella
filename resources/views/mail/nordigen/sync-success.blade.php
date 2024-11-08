@@ -3,9 +3,9 @@
 
 Here's what happened on your bank accounts today.
 
-A total of <b>{{ $results->countTransactions() }} transaction(s)</b> were fetched.
+A total of <b>{{ $numTransactions }} transaction(s)</b> were registered.
 
-@if(sizeof($fails) > 0)
+@if(count($fails) > 0)
 ---
 
 ## ERRORS
@@ -13,13 +13,13 @@ A total of <b>{{ $results->countTransactions() }} transaction(s)</b> were fetche
 | Account | Error |
 | - | - |
 @foreach($fails as $result)
-| {{ $result->account->name }} | {{ $result->exception->getMessage() }} |
+| {{ $result->getAccount()->name }} | {{ $result->exception_message }} |
 @endforeach
 
 ---
 @endif
 
-@if(sizeof($successes) > 0)
+@if(count($successes) > 0)
 ---
 
 ## NEW TRANSACTIONS
@@ -27,8 +27,8 @@ A total of <b>{{ $results->countTransactions() }} transaction(s)</b> were fetche
 | Account | Date | Description | Amount |
 | - | - | - | -: |
 @foreach($successes as $result)
-@foreach($result->transactions as $transaction)
-| {{ $result->account->name }} | {{ $transaction->value_date->format("Y-m-d") }} | {{ $transaction->description }} | {{ $transaction->humanAmount }} |
+@foreach($result->getTransactions() as $transaction)
+| {{ $result->getAccount()->name }} | {{ $transaction->value_date->format("Y-m-d") }} | {{ $transaction->description }} | {{ $transaction->humanAmount }} |
 @endforeach
 @endforeach
 
