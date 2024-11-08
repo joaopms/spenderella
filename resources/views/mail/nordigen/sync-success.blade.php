@@ -28,7 +28,7 @@ A total of <b>{{ $numTransactions }} transaction(s)</b> were registered.
 | - | - | - | -: |
 @foreach($successes as $result)
 @foreach($result->getTransactions() as $transaction)
-| {{ $result->getAccount()->name }} | {{ $transaction->value_date->format("Y-m-d") }} | {{ $transaction->description }} | {{ $transaction->humanAmount }} |
+| {{ $result->getAccount()->institution_name }}<br/><small>{{ $result->getAccount()->iban }}</small> | {{ $transaction->value_date->format("Y-m-d") }} | {{ $transaction->description }} | {{ $transaction->humanAmount }} |
 @endforeach
 @endforeach
 

@@ -15,8 +15,12 @@ return new class extends Migration
             $table->string('nordigen_id');
             $table->string('currency', 3);
 
-            $table->string('iban')->nullable();
+            $table->string('institution_id');
+            $table->string('institution_name');
+            $table->string('institution_bic');
+
             $table->string('name')->nullable();
+            $table->string('iban')->nullable();
 
             $table->timestamps();
         });

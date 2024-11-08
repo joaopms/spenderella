@@ -66,6 +66,14 @@ class NordigenService
             ->all();
     }
 
+    private function getInstitutionById(string $institutionId): array
+    {
+        return collect($this->listAllInstitutions())
+            ->lazy()
+            ->flatten(1)
+            ->firstOrFail('id', $institutionId);
+    }
+
     /**
      * Creates a Nordigen end user agreement and save it to the database
      */
@@ -91,10 +99,7 @@ class NordigenService
         DB::beginTransaction();
 
         // Get the maximum days of access for this institution
-        $institution = collect($this->listAllInstitutions())
-            ->lazy()
-            ->flatten(1)
-            ->firstOrFail('id', $institutionId);
+        $institution = $this->getInstitutionById($institutionId);
         $daysOfAccess = (int) $institution['max_access_valid_for_days'];
 
         // Create the end user agreement
@@ -189,12 +194,17 @@ class NordigenService
 
                 continue;
             } else {
+                $institution = $this->getInstitutionById($requisitionData['institution_id']);
+
                 // Create the account
                 $requisition->accounts()->create([
                     'nordigen_id' => $accountId,
                     'currency' => $accountData['currency'],
                     'iban' => $accountData['iban'] ?? null,
                     'name' => $accountData['name'] ?? null,
+                    'institution_id' => $institution['id'],
+                    'institution_name' => $institution['name'],
+                    'institution_bic' => $institution['bic'],
                 ]);
 
                 Log::debug('Account created', [

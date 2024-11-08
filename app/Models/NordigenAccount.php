@@ -31,8 +31,11 @@ class NordigenAccount extends Model
     protected $fillable = [
         'nordigen_id',
         'currency',
-        'iban',
+        'institution_id',
+        'institution_name',
+        'institution_bic',
         'name',
+        'iban',
     ];
 
     public function requisitions(): BelongsToMany
