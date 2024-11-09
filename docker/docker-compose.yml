@@ -1,0 +1,17 @@
+services:
+    spenderella:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        image: spenderella
+        ports:
+            - '8080:80'
+        volumes:
+            - '../:/var/www'
+            - './storage:/var/www/storage'
+        networks:
+            - spenderella
+
+networks:
+    spenderella:
+        driver: bridge
