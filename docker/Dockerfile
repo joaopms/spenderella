@@ -24,6 +24,8 @@ EXPOSE 80
 RUN echo "* * * * * cd /var/www && php artisan schedule:run >> /dev/null 2>&1" | crontab -
 
 RUN mkdir -p /var/www/storage
+RUN mkdir -p /var/www/database
+RUN touch /var/www/database/database.sqlite
 
 ADD entrypoint.sh /entrypoint.sh
 

@@ -40,12 +40,13 @@ The `Dockerfile` located on the `docker` directory creates a Docker image that r
 2. **Clone the repo to, for example, `repo`**
 3. **Copy `repo/storage` to where persistent data is going to be stored, for example, `storage`**<br/>
    (with `cp -r repo/storage storage`)
-4. **Setup Docker Compose**<br/>
+4. **Create the `database.sqlite` file**
+5. **Setup Docker Compose**<br/>
    Use the `docker-compose.yml` file in the `docker` directory as a guide
-5. **Start the Docker container and run the commands below in it**<br/>
-6. **Edit `.env` to your needs**
-7. **Restart the Docker container**
-8. **Success! 🎉**
+6. **Start the Docker container and run the commands below in it**<br/>
+7. **Edit `.env` to your needs**
+8. **Restart the Docker container**
+9. **Success! 🎉**
 
 ```sh
 # Install dependencies
@@ -59,4 +60,7 @@ php artisan key:generate
 
 # Create the symbolic link for public storage
 php artisan storage:link
+
+# Setup the database tables
+php artisan migrate
 ```

@@ -7,8 +7,9 @@ services:
         ports:
             - '8080:80'
         volumes:
-            - '../:/var/www'
-            - './storage:/var/www/storage'
+            - ../:/var/www
+            - ./storage:/var/www/storage
+            - ./database.sqlite:/var/www/database/database.sqlite
         networks:
             - spenderella
 
