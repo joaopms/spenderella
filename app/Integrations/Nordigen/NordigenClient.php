@@ -8,8 +8,6 @@ use Illuminate\Support\Facades\Log;
 
 class NordigenClient
 {
-    public const SANDBOX_INSTITUTION = 'SANDBOXFINANCE_SFIN0000';
-
     private const CACHE_ACCESS_TOKEN = 'nordigen.access_token';
 
     private const CACHE_REFRESH_TOKEN = 'nordigen.refresh_token';

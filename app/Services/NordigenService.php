@@ -245,9 +245,11 @@ class NordigenService
         foreach ($bookedTransactionsData as $data) {
             $bankId = $data['transactionId'] ?? null;
             $nordigenId = $data['internalTransactionId'] ?? null;
+            $entryReference = $data['internalTransactionId'] ?? null;
 
             // Make sure the transaction has any type of ID
-            if (! $bankId && ! $nordigenId) {
+            if (! $bankId && ! $nordigenId && ! $entryReference) {
+                Log::debug('Transaction does not contain any ID', ['transaction' => $data]);
                 throw new SpenderellaNordigenException('Transaction does not contain any ID');
             }
 
@@ -259,12 +261,16 @@ class NordigenService
             if ($nordigenId) {
                 $transactionExists = $transactionExists->where('nordigen_id', $nordigenId);
             }
+            if ($entryReference) {
+                $transactionExists = $transactionExists->where('entry_reference', $nordigenId);
+            }
 
             if ($transactionExists->exists()) {
                 Log::debug('Transaction already exists, skipping', [
                     'account_id' => $account->id,
                     'bank_id' => $bankId,
                     'nordigen_id' => $nordigenId,
+                    'entry_reference' => $entryReference,
                 ]);
 
                 continue;
@@ -276,6 +282,7 @@ class NordigenService
             $transactions[] = $account->transactions()->create([
                 'bank_id' => $bankId,
                 'nordigen_id' => $nordigenId,
+                'entry_reference' => $entryReference,
                 'booking_date' => $data['bookingDate'],
                 'value_date' => $data['valueDate'],
                 'amount' => floatval($data['transactionAmount']['amount']) * 100, // save as cents

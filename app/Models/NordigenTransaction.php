@@ -31,6 +31,7 @@ class NordigenTransaction extends Model
     protected $fillable = [
         'bank_id',
         'nordigen_id',
+        'entry_reference',
         'booking_date',
         'value_date',
         'amount',
