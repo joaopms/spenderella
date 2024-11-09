@@ -11,6 +11,9 @@ RUN apk --no-cache add \
 RUN docker-php-ext-configure intl && \
     docker-php-ext-install intl
 
+RUN docker-php-ext-configure pdo_mysql && \
+    docker-php-ext-install pdo_mysql
+
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 COPY nginx.conf /etc/nginx/http.d/default.conf
@@ -24,8 +27,6 @@ EXPOSE 80
 RUN echo "* * * * * cd /var/www && php artisan schedule:run >> /dev/null 2>&1" | crontab -
 
 RUN mkdir -p /var/www/storage
-RUN mkdir -p /var/www/database
-RUN touch /var/www/database/database.sqlite
 
 ADD entrypoint.sh /entrypoint.sh
 

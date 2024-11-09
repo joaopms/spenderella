@@ -4,12 +4,33 @@ services:
             context: .
             dockerfile: Dockerfile
         image: spenderella
+        container_name: spenderella
+        restart: always
         ports:
             - '8080:80'
         volumes:
             - ../:/var/www
             - ./storage:/var/www/storage
-            - ./database.sqlite:/var/www/database/database.sqlite
+        networks:
+            - spenderella
+
+    mariadb:
+        image: mariadb:lts
+        container_name: mariadb
+        restart: always
+        volumes:
+            - ./mariadb:/var/lib/mysql:Z
+        environment:
+            MARIADB_ROOT_PASSWORD: spenderella
+        networks:
+            - spenderella
+
+    adminer:
+        image: shyim/adminerevo:latest
+        container_name: adminer
+        restart: always
+        ports:
+            - '8081:8080'
         networks:
             - spenderella
 
