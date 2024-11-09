@@ -245,7 +245,7 @@ class NordigenService
         foreach ($bookedTransactionsData as $data) {
             $bankId = $data['transactionId'] ?? null;
             $nordigenId = $data['internalTransactionId'] ?? null;
-            $entryReference = $data['internalTransactionId'] ?? null;
+            $entryReference = $data['entryReference'] ?? null;
 
             // Make sure the transaction has any type of ID
             if (! $bankId && ! $nordigenId && ! $entryReference) {
