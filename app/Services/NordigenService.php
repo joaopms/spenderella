@@ -294,6 +294,7 @@ class NordigenService
                 'account_id' => $account->id,
                 'bank_id' => $bankId,
                 'nordigen_id' => $nordigenId,
+                'entry_reference' => $entryReference,
             ]);
         }
 
