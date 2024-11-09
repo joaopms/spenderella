@@ -42,7 +42,7 @@ The `Dockerfile` located on the `docker` directory creates a Docker image that r
    (with `cp -r repo/storage storage`)
 4. **Setup Docker Compose**<br/>
    Use the `docker-compose.yml` file in the `docker` directory as a guide
-5. **Start the Docker container and run the commands below**<br/>
+5. **Start the Docker container and run the commands below in it**<br/>
 6. **Edit `.env` to your needs**
 7. **Restart the Docker container**
 8. **Success! 🎉**

@@ -3,7 +3,13 @@ FROM php:8.3-fpm-alpine
 
 RUN apk --no-cache add \
     nginx \
-    supervisor
+    supervisor \
+    icu \
+    icu-data-full \
+    icu-dev
+
+RUN docker-php-ext-configure intl && \
+    docker-php-ext-install intl
 
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
