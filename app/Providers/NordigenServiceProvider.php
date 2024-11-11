@@ -14,7 +14,7 @@ class NordigenServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->singleton(NordigenService::class, function () {
+        $this->app->scoped(NordigenService::class, function () {
             $secretId = config('services.nordigen.id');
             $secretKey = config('services.nordigen.key');
 
