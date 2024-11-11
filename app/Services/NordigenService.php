@@ -262,7 +262,7 @@ class NordigenService
                 $transactionExists = $transactionExists->where('nordigen_id', $nordigenId);
             }
             if ($entryReference) {
-                $transactionExists = $transactionExists->where('entry_reference', $nordigenId);
+                $transactionExists = $transactionExists->where('entry_reference', $entryReference);
             }
 
             if ($transactionExists->exists()) {
