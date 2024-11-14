@@ -53,7 +53,6 @@ class PlaygroundController extends Controller
 
     public function syncAllAccounts()
     {
-
         NordigenSyncAllAccounts::dispatch();
 
         return 'Done.';
