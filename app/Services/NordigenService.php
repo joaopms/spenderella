@@ -9,6 +9,7 @@ use App\Models\NordigenAccount;
 use App\Models\NordigenAgreement;
 use App\Models\NordigenRequisition;
 use App\Models\NordigenTransaction;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -122,7 +123,7 @@ class NordigenService
         $requisition->update([
             'nordigen_id' => $requisitionData['id'],
             'link' => $requisitionData['link'],
-            'nordigen_created_at' => $requisitionData['created'],
+            'nordigen_created_at' => Carbon::parse($requisitionData['created']),
         ]);
 
         DB::commit();
@@ -222,7 +223,7 @@ class NordigenService
     /**
      * @throws SpenderellaNordigenException
      */
-    private function loadAndSaveTransactions(NordigenAccount $account): array
+    private function loadAndSaveTransactions(NordigenAccount $account, ?string $dateFrom): array
     {
         //        if (rand(0, 100) > 70) {
         //            // Succeed 70% of the times
@@ -254,6 +255,7 @@ class NordigenService
             }
 
             // Make sure the transaction is not in the database yet
+            // TODO Batch the IDs, make only one query to the database
             $transactionExists = $account->transactions();
             if ($bankId) {
                 $transactionExists = $transactionExists->where('bank_id', $bankId);
@@ -313,10 +315,14 @@ class NordigenService
             throw new SpenderellaNordigenUserException('Please refresh access to the bank account');
         }
 
-        // Since we only sync booked transactions, get those from the week before the last synced one
-        // That way, transactions should have enough time to get processed by the bank
-        $lastTransaction = $account->transactions()->latest()->first();
-        $dateFrom = $lastTransaction?->booking_date->addDays(-7);
+        // Get every possible transaction if there are no saved transactions (new account, most likely)
+        $dateFrom = null;
+        if (! $account->transactions()->exists()) {
+            // Since we only sync booked transactions, get those from the week before the last synced one
+            // That way, transactions should have enough time to get processed by the bank
+            $lastTransaction = $account->transactions()->latest()->first();
+            $dateFrom = $lastTransaction?->booking_date->addDays(-7);
+        }
 
         Log::debug($dateFrom ? "Getting transactions from $dateFrom" : 'Getting all transactions', [
             'account_id' => $account->id,
