@@ -15,7 +15,8 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/settings', [SettingsController::class, 'show']);
+Route::get('/settings', [SettingsController::class, 'show'])->name('settings.show');
+Route::post('/settings/payment-method', [SettingsController::class, 'storePaymentMethod']);
 
 Route::get('/accounts/new', [PlaygroundController::class, 'listInstitutions'])->name('accounts.new');
 

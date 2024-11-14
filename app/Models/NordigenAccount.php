@@ -56,7 +56,7 @@ class NordigenAccount extends Model
 
     public function paymentMethod(): BelongsTo
     {
-        return $this->belongsTo(PaymentMethod::class);
+        return $this->belongsTo(PaymentMethod::class, 'id', 'nordigen_account_id');
     }
 
     public function getAgreements(): Builder

@@ -5,7 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class NordigenAccountResource extends JsonResource
+class PaymentMethodResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -17,8 +17,8 @@ class NordigenAccountResource extends JsonResource
         return [
             'uuid' => $this->uuid,
             'name' => $this->name,
-            'institutionName' => $this->institution_name,
-            'iban' => $this->iban,
+            'type' => $this->type->label(),
+            'linkedAccount' => NordigenAccountResource::make($this->nordigenAccount),
         ];
     }
 }

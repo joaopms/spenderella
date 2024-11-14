@@ -39,6 +39,6 @@ class PaymentMethod extends Model
 
     public function nordigenAccount(): HasOne
     {
-        return $this->hasOne(NordigenAccount::class, 'nordigen_account_id');
+        return $this->hasOne(NordigenAccount::class, 'id', 'nordigen_account_id');
     }
 }
