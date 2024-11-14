@@ -6,8 +6,15 @@
         "build": "vite build"
     },
     "devDependencies": {
-        "axios": "^1.5.0",
-        "laravel-vite-plugin": "^0.8.0",
-        "vite": "^4.4.9"
+        "@sveltejs/vite-plugin-svelte": "^4.0.0",
+        "axios": "^1.7.7",
+        "laravel-vite-plugin": "^1.0.6",
+        "prettier": "^3.3.3",
+        "prettier-plugin-svelte": "^3.2.8",
+        "svelte": "^5.2.0",
+        "vite": "^5.4.11"
+    },
+    "dependencies": {
+        "@inertiajs/svelte": "^2.0.0-beta.2"
     }
 }

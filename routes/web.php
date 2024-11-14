@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\PlaygroundController;
+use App\Http\Controllers\SettingsController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -14,9 +15,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/settings', [SettingsController::class, 'show']);
 
 Route::get('/accounts/new', [PlaygroundController::class, 'listInstitutions'])->name('accounts.new');
 
