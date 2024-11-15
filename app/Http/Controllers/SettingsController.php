@@ -34,38 +34,41 @@ class SettingsController extends Controller
                 'required',
                 Rule::enum(PaymentMethodType::class),
             ],
-            'accountToLink' => 'required',
+            'accountToLink' => 'nullable',
         ]);
 
         // Run the built-in validation rules
         $validated = $validator->validate();
 
-        // Get the account to link
-        $accountToLink = NordigenAccount::where('uuid', $validated['accountToLink'])
-            ->with(['paymentMethod'])
-            ->first();
+        $accountToLink = null;
+        if ($validated['accountToLink']) {
+            // Get the account to link
+            $accountToLink = NordigenAccount::where('uuid', $validated['accountToLink'])
+                ->with(['paymentMethod'])
+                ->first();
 
-        // Run the custom validation rules
-        $validated = $validator->after(function ($validator) use ($accountToLink) {
-            // Check if the account exists
-            if (! $accountToLink) {
-                $validator->errors()->add('accountToLink', 'This account does not exist');
+            // Run the custom validation rules
+            $validated = $validator->after(function ($validator) use ($accountToLink) {
+                // Check if the account exists
+                if (! $accountToLink) {
+                    $validator->errors()->add('accountToLink', 'This account does not exist');
 
-                return;
-            }
+                    return;
+                }
 
-            // Check if the account is already linked to a payment method
-            if ($accountToLink->paymentMethod) {
-                $validator->errors()->add('accountToLink', 'This account is already linked to another account');
+                // Check if the account is already linked to a payment method
+                if ($accountToLink->paymentMethod) {
+                    $validator->errors()->add('accountToLink', 'This account is already linked to another account');
 
-                return;
-            }
-        })->validate();
+                    return;
+                }
+            })->validate();
+        }
 
-        // Create the payment method and link it to the account
+        // Create the payment method and (optionally) link it to the account
         PaymentMethod::create([
             ...$validated,
-            'nordigen_account_id' => $accountToLink->id,
+            'nordigen_account_id' => $accountToLink?->id,
         ]);
 
         return to_route('settings.show');

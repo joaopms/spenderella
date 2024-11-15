@@ -17,7 +17,7 @@ return new class extends Migration
 
             $table->string('name');
             $table->enum('type', ['bank_account', 'credit_card', 'cash'])->nullable();
-            $table->foreignId('nordigen_account_id')->constrained('nordigen_accounts');
+            $table->foreignId('nordigen_account_id')->nullable()->constrained('nordigen_accounts');
 
             $table->timestamps();
         });

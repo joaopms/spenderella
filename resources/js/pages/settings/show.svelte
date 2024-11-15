@@ -9,9 +9,17 @@
         accountToLink: null,
     });
 
+    function pmFormReset(e) {
+        e.preventDefault();
+        $pmForm.reset();
+    }
+
     function pmFormSubmit(e) {
         e.preventDefault();
-        $pmForm.post("/settings/payment-method", { preserveScroll: true });
+        $pmForm.post("/settings/payment-method", {
+            preserveScroll: true,
+            onSuccess: () => $pmForm.reset(),
+        });
     }
 </script>
 
@@ -34,17 +42,11 @@
             </tr>
         </thead>
         <tbody>
-            {#each linkedAccounts.data as account}
+            {#each linkedAccounts.data as { name, institutionName, iban }}
                 <tr>
-                    <td>
-                        {account.name}
-                    </td>
-                    <td>
-                        {account.institutionName}
-                    </td>
-                    <td>
-                        {account.iban}
-                    </td>
+                    <td>{name}</td>
+                    <td>{institutionName}</td>
+                    <td>{iban}</td>
                 </tr>
             {/each}
         </tbody>
@@ -64,15 +66,11 @@
             </tr>
         </thead>
         <tbody>
-            {#each paymentMethods.data as paymentMethod}
+            {#each paymentMethods.data as { name, type, linkedAccount }}
                 <tr>
-                    <td>
-                        {paymentMethod.name}
-                    </td>
-                    <td>
-                        {paymentMethod.type}
-                    </td>
-                    <td>{paymentMethod.linkedAccount.name}</td>
+                    <td>{name}</td>
+                    <td>{type}</td>
+                    <td>{linkedAccount ? linkedAccount.name : "None"}</td>
                 </tr>
             {/each}
         </tbody>
@@ -91,7 +89,7 @@
         <div>
             <label for="pm_type">Type</label>
             <select id="pm_type" bind:value={$pmForm.type}>
-                <option disabled>Select one</option>
+                <option value={null} disabled hidden>Select one</option>
                 {#each Object.entries(paymentMethodTypes) as [key, name]}
                     <option value={key}>{name}</option>
                 {/each}
@@ -104,18 +102,27 @@
         <div>
             <label for="pm_accountToLink">Account to link</label>
             <select id="pm_accountToLink" bind:value={$pmForm.accountToLink}>
-                <option disabled>Select one</option>
-                {#each linkedAccounts.data as account}
-                    <option value={account.uuid}>
-                        {account.institutionName}
-                    </option>
-                {/each}
+                <option value={null}>None</option>
+                <optgroup label="Accounts">
+                    {#each linkedAccounts.data as account}
+                        <option value={account.uuid}>
+                            {account.name}
+                        </option>
+                    {/each}
+                </optgroup>
             </select>
             {#if $pmForm.errors.accountToLink}
                 <div class="form-error">{$pmForm.errors.accountToLink}</div>
             {/if}
         </div>
 
+        <button
+            type="reset"
+            disabled={!$pmForm.isDirty || $pmForm.processing}
+            onclick={pmFormReset}
+        >
+            Clear
+        </button>
         <button type="submit" disabled={$pmForm.processing}>Submit</button>
     </form>
 </section>
