@@ -9,6 +9,7 @@
         "@sveltejs/vite-plugin-svelte": "^4.0.0",
         "axios": "^1.7.7",
         "laravel-vite-plugin": "^1.0.6",
+        "luxon": "^3.5.0",
         "prettier": "^3.3.3",
         "prettier-plugin-svelte": "^3.2.8",
         "svelte": "^5.2.0",
