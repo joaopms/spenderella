@@ -48,7 +48,7 @@ class SettingsController extends Controller
                 ->first();
 
             // Run the custom validation rules
-            $validated = $validator->after(function ($validator) use ($accountToLink) {
+            $validated = $validator->after(function (\Illuminate\Validation\Validator $validator) use ($accountToLink) {
                 // Check if the account exists
                 if (! $accountToLink) {
                     $validator->errors()->add('accountToLink', 'This account does not exist');
@@ -57,11 +57,7 @@ class SettingsController extends Controller
                 }
 
                 // Check if the account is already linked to a payment method
-                if ($accountToLink->paymentMethod) {
-                    $validator->errors()->add('accountToLink', 'This account is already linked to another account');
-
-                    return;
-                }
+                $validator->errors()->addIf($accountToLink->paymentMethod, 'accountToLink', 'This account is already linked to another account');
             })->validate();
         }
 

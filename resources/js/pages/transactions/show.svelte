@@ -5,6 +5,7 @@
     const { paymentMethods, transactions } = $props();
 
     const newTForm = useForm({
+        parentTransaction: null,
         date: DateTime.now().toISODate(),
         name: null,
         category: null,
@@ -14,6 +15,12 @@
         paymentMethod: null,
         // nordigenTransaction: null
     });
+
+    function addSplitTransaction(transaction) {
+        $newTForm.parentTransaction = transaction.uuid;
+        $newTForm.date = transaction.date;
+        $newTForm.type = "+";
+    }
 
     function newTFormReset(e) {
         e.preventDefault();
@@ -50,8 +57,15 @@
 <!-- New transactions -->
 <section>
     <h2>New transaction</h2>
+    {#if $newTForm.parentTransaction}
+        <p>Adding child transaction to {$newTForm.parentTransaction}</p>
+    {/if}
 
     <form onsubmit={newTFormSubmit}>
+        {#if $newTForm.errors.parentTransaction}
+            <div class="form-error">{$newTForm.errors.parentTransaction}</div>
+        {/if}
+
         <div>
             <label for="newT_date">Date</label>
             <input type="date" id="newT_date" bind:value={$newTForm.date} />
@@ -68,53 +82,56 @@
             {/if}
         </div>
 
-        <div>
-            <label for="newT_category">Category</label>
-            <input
-                type="text"
-                id="newT_category"
-                bind:value={$newTForm.category}
-            />
-            {#if $newTForm.errors.category}
-                <div class="form-error">{$newTForm.errors.category}</div>
-            {/if}
-        </div>
-
-        <div>
-            <label for="newT_description">Description</label>
-            <input
-                type="text"
-                id="newT_description"
-                bind:value={$newTForm.description}
-            />
-            {#if $newTForm.errors.description}
-                <div class="form-error">{$newTForm.errors.description}</div>
-            {/if}
-        </div>
-
-        <div>
-            <fieldset>
-                <legend>Type</legend>
-
+        <!-- Hide fields that are only for parent transactions -->
+        {#if !$newTForm.parentTransaction}
+            <div>
+                <label for="newT_category">Category</label>
                 <input
-                    type="radio"
-                    id="newT_type-expense"
-                    name="type"
-                    value="-"
-                    bind:group={$newTForm.type}
+                    type="text"
+                    id="newT_category"
+                    bind:value={$newTForm.category}
                 />
-                <label for="newT_type-expense">Expense</label>
+                {#if $newTForm.errors.category}
+                    <div class="form-error">{$newTForm.errors.category}</div>
+                {/if}
+            </div>
 
+            <div>
+                <label for="newT_description">Description</label>
                 <input
-                    type="radio"
-                    id="newT_type-income"
-                    name="type"
-                    value="+"
-                    bind:group={$newTForm.type}
+                    type="text"
+                    id="newT_description"
+                    bind:value={$newTForm.description}
                 />
-                <label for="newT_type-income">Income</label>
-            </fieldset>
-        </div>
+                {#if $newTForm.errors.description}
+                    <div class="form-error">{$newTForm.errors.description}</div>
+                {/if}
+            </div>
+
+            <div>
+                <fieldset>
+                    <legend>Type</legend>
+
+                    <input
+                        type="radio"
+                        id="newT_type-expense"
+                        name="type"
+                        value="-"
+                        bind:group={$newTForm.type}
+                    />
+                    <label for="newT_type-expense">Expense</label>
+
+                    <input
+                        type="radio"
+                        id="newT_type-income"
+                        name="type"
+                        value="+"
+                        bind:group={$newTForm.type}
+                    />
+                    <label for="newT_type-income">Income</label>
+                </fieldset>
+            </div>
+        {/if}
 
         <div>
             <label for="newT_amount">Amount</label>
@@ -160,29 +177,67 @@
 <hr />
 
 <!-- Transactions list -->
-<section>
+{#snippet transactionList(transactions, isSplit = false)}
     <table border="1">
         <thead>
             <tr>
                 <th>Date</th>
                 <th>Payment Method</th>
                 <th>Name</th>
-                <th>Category</th>
-                <th>Description</th>
+                {#if !isSplit}
+                    <th>Category</th>
+                    <th>Description</th>
+                {/if}
                 <th>Amount</th>
+                <!-- Add split transactions -->
+                {#if !isSplit}
+                    <th></th>
+                {/if}
             </tr>
         </thead>
         <tbody>
-            {#each transactions.data as { date, paymentMethod, name, category, description, amount }}
+            {#each transactions as transaction}
+                <!-- Transaction -->
                 <tr>
-                    <td>{date}</td>
-                    <td>{paymentMethod.name}</td>
-                    <td>{name}</td>
-                    <td>{category}</td>
-                    <td>{description}</td>
-                    <td align="right">{amount}</td>
+                    <td>{transaction.date}</td>
+                    <td>{transaction.paymentMethod.name}</td>
+                    <td>{transaction.name}</td>
+                    {#if !isSplit}
+                        <td>{transaction.category}</td>
+                        <td>{transaction.description}</td>
+                    {/if}
+                    <td align="right">
+                        <span title="Debited amount: {transaction.amount}"
+                            >{transaction.amountAfterSplit}</span
+                        >
+                    </td>
+                    {#if !isSplit}
+                        <td>
+                            <button
+                                title="Add split"
+                                onclick={() => addSplitTransaction(transaction)}
+                            >
+                                +
+                            </button>
+                        </td>
+                    {/if}
                 </tr>
+
+                <!-- Splits -->
+                {#if !isSplit && transaction.split.length > 0}
+                    <tr>
+                        <td colspan="2"></td>
+                        <td colspan="4">
+                            {@render transactionList(transaction.split, true)}
+                        </td>
+                        <td></td>
+                    </tr>
+                {/if}
             {/each}
         </tbody>
     </table>
+{/snippet}
+
+<section>
+    {@render transactionList(transactions.data)}
 </section>

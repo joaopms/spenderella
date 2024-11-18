@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use NumberFormatter;
 
@@ -54,23 +56,44 @@ class Transaction extends Model
         return $this->hasOne(Transaction::class, 'id', 'parent_transaction_id');
     }
 
+    public function splitTransactions(): HasMany
+    {
+        return $this->hasMany(Transaction::class, 'parent_transaction_id');
+    }
+
     public function nordigenTransaction(): HasOne
     {
         return $this->hasOne(NordigenTransaction::class, 'id', 'nordigen_transaction_id');
     }
 
-    public function humanAmount(): Attribute
+    public function scopeParent(Builder $query): void
+    {
+        $query->whereNull('parent_transaction_id');
+    }
+
+    // TODO Move this out of here
+    public static function formatAmount(int $amount): string
+    {
+        $formatter = new NumberFormatter(config('app.format_locale'), NumberFormatter::CURRENCY);
+
+        // Make the number sign required when the number is positive
+        $formatter->setTextAttribute(NumberFormatter::POSITIVE_PREFIX, '+');
+
+        // TODO Don't hardcode EUR, maybe? Maybe store it in the PaymentMethod?
+        return $formatter->formatCurrency($amount / 100, 'EUR');
+    }
+
+    public function splitAmount(): Attribute
     {
         return Attribute::make(
-            get: function ($ignored, array $attributes) {
-                $formatter = new NumberFormatter(config('app.format_locale'), NumberFormatter::CURRENCY);
+            get: fn () => $this->splitTransactions()->sum('amount')
+        );
+    }
 
-                // Make the number sign required when the number is positive
-                $formatter->setTextAttribute(NumberFormatter::POSITIVE_PREFIX, '+');
-
-                // TODO Don't hardcode EUR, maybe? Maybe store it in the PaymentMethod?
-                return $formatter->formatCurrency($attributes['amount'] / 100, 'EUR');
-            }
+    public function amountAfterSplit(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->amount + $this->splitAmount
         );
     }
 }
