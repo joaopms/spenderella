@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\LinkedAccountsController;
 use App\Http\Controllers\PlaygroundController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\TransactionsController;
@@ -21,6 +22,8 @@ Route::post('/settings/payment-method', [SettingsController::class, 'storePaymen
 
 Route::get('/transactions', [TransactionsController::class, 'show'])->name('transactions.show');
 Route::post('/transactions', [TransactionsController::class, 'storeTransaction']);
+
+Route::get('/linked-accounts/transactions', [LinkedAccountsController::class, 'showTransactions'])->name('linked-accounts.transactions.show-all');
 
 // -----------------------
 

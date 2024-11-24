@@ -1,7 +1,9 @@
 <script>
     import { useForm } from "@inertiajs/svelte";
     import { DateTime } from "luxon";
+    import { setPageTitles } from "../../utils/store.svelte.js";
 
+    setPageTitles("Transactions");
     const { paymentMethods, transactions } = $props();
 
     const newTForm = useForm({
@@ -47,10 +49,6 @@
             });
     }
 </script>
-
-<svelte:head>
-    <title>Transactions - Spenderella</title>
-</svelte:head>
 
 <h1>Transactions</h1>
 
@@ -207,9 +205,9 @@
                         <td>{transaction.description}</td>
                     {/if}
                     <td align="right">
-                        <span title="Debited amount: {transaction.amount}"
-                            >{transaction.amountAfterSplit}</span
-                        >
+                        <span title="Debited amount: {transaction.amount}">
+                            {transaction.amountAfterSplit}
+                        </span>
                     </td>
                     {#if !isSplit}
                         <td>

@@ -1,6 +1,8 @@
 <script>
     import { useForm } from "@inertiajs/svelte";
+    import { setPageTitles } from "../../utils/store.svelte.js";
 
+    setPageTitles("Settings");
     const { linkedAccounts, paymentMethodTypes, paymentMethods } = $props();
 
     const pmForm = useForm({
@@ -22,10 +24,6 @@
         });
     }
 </script>
-
-<svelte:head>
-    <title>Settings - Spenderella</title>
-</svelte:head>
 
 <h1>Settings</h1>
 
