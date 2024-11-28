@@ -22,6 +22,7 @@ Route::post('/settings/payment-method', [SettingsController::class, 'storePaymen
 
 Route::get('/transactions', [TransactionsController::class, 'show'])->name('transactions.show');
 Route::post('/transactions', [TransactionsController::class, 'storeTransaction']);
+Route::post('/transactions/link', [TransactionsController::class, 'linkTransaction']);
 
 Route::get('/linked-accounts/transactions', [LinkedAccountsController::class, 'showTransactions'])->name('linked-accounts.transactions.show-all');
 

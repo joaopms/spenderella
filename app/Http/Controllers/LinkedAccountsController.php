@@ -10,7 +10,10 @@ class LinkedAccountsController extends Controller
 {
     public function showTransactions()
     {
-        $transactions = NordigenTransaction::with('account')
+        $transactions = NordigenTransaction::with([
+            'account',
+            'linkedTransactions',
+        ])
             ->orderByDesc('booking_date')
             ->paginate(50);
 

@@ -25,6 +25,7 @@ class TransactionResource extends JsonResource
             'amount' => Transaction::formatAmount($this->amount),
             'split' => TransactionResource::collection($this->splitTransactions),
             'amountAfterSplit' => Transaction::formatAmount($this->amountAfterSplit),
+            'linkedTransactionUuid' => $this->nordigenTransaction?->uuid,
         ];
     }
 }

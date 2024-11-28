@@ -4,9 +4,10 @@
     import { setPageTitles } from "../../utils/store.svelte.js";
 
     setPageTitles("Transactions");
-    const { paymentMethods, transactions } = $props();
+    const { paymentMethods, transactions, transactionToLink = null } = $props();
 
     const newTForm = useForm({
+        transactionToLink: null,
         parentTransaction: null,
         date: DateTime.now().toISODate(),
         name: null,
@@ -17,6 +18,17 @@
         paymentMethod: null,
         // nordigenTransaction: null
     });
+
+    // Pre-fill the form when linking to a transaction from a linked account
+    if (transactionToLink) {
+        const data = transactionToLink.data;
+
+        $newTForm.transactionToLink = data.uuid;
+        $newTForm.date = data.date;
+        $newTForm.name = data.description;
+        $newTForm.amount = Math.abs(data.amountRaw) / 100;
+        $newTForm.type = data.amountRaw > 0 ? "+" : "-";
+    }
 
     function addSplitTransaction(transaction) {
         $newTForm.parentTransaction = transaction.uuid;
@@ -58,10 +70,16 @@
     {#if $newTForm.parentTransaction}
         <p>Adding child transaction to {$newTForm.parentTransaction}</p>
     {/if}
+    {#if $newTForm.transactionToLink}
+        <p>Linking to transaction</p>
+    {/if}
 
     <form onsubmit={newTFormSubmit}>
         {#if $newTForm.errors.parentTransaction}
             <div class="form-error">{$newTForm.errors.parentTransaction}</div>
+        {/if}
+        {#if $newTForm.errors.transactionToLink}
+            <div class="form-error">{$newTForm.errors.transactionToLink}</div>
         {/if}
 
         <div>
@@ -187,6 +205,7 @@
                     <th>Description</th>
                 {/if}
                 <th>Amount</th>
+                <th>Linked</th>
                 <!-- Add split transactions -->
                 {#if !isSplit}
                     <th></th>
@@ -209,6 +228,9 @@
                             {transaction.amountAfterSplit}
                         </span>
                     </td>
+                    <td>
+                        {transaction.linkedTransactionUuid ? "Yes" : "No"}
+                    </td>
                     {#if !isSplit}
                         <td>
                             <button
@@ -225,7 +247,7 @@
                 {#if !isSplit && transaction.split.length > 0}
                     <tr>
                         <td colspan="2"></td>
-                        <td colspan="4">
+                        <td colspan="5">
                             {@render transactionList(transaction.split, true)}
                         </td>
                         <td></td>

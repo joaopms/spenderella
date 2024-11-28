@@ -19,8 +19,10 @@ class NordigenTransactionResource extends JsonResource
             'uuid' => $this->uuid,
             'date' => $this->booking_date->toDateString(),
             'amount' => Transaction::formatAmount($this->amount),
+            'amountRaw' => $this->amount,
             'description' => $this->description,
             'account' => NordigenAccountResource::make($this->account),
+            'linkedTransactionsUuid' => $this->linkedTransactions->pluck('uuid'),
         ];
     }
 }

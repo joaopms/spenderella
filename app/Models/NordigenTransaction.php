@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use NumberFormatter;
 
 class NordigenTransaction extends Model
@@ -47,6 +48,11 @@ class NordigenTransaction extends Model
     public function account(): BelongsTo
     {
         return $this->belongsTo(NordigenAccount::class);
+    }
+
+    public function linkedTransactions(): HasMany
+    {
+        return $this->hasMany(Transaction::class);
     }
 
     public function humanAmount(): Attribute

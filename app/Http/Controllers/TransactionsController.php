@@ -2,37 +2,64 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\NordigenTransactionResource;
 use App\Http\Resources\PaymentMethodSelectionResource;
 use App\Http\Resources\TransactionResource;
+use App\Models\NordigenTransaction;
 use App\Models\PaymentMethod;
 use App\Models\Transaction;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
 
 class TransactionsController extends Controller
 {
-    public function show()
+    private const TRANSACTION_LINK_KEY = 'transaction-link';
+
+    public function show(Request $request)
     {
         $paymentMethods = PaymentMethod::all();
         $transactions = Transaction::parent()
             ->with([
                 'paymentMethod',
+                'nordigenTransaction',
                 'splitTransactions' => fn (HasMany $query) => $query->orderBy('parent_transaction_order')]
             )
             ->orderByDesc('date')
             ->get();
 
-        return Inertia::render('transactions/show', [
+        $data = [
             'paymentMethods' => PaymentMethodSelectionResource::collection($paymentMethods),
             'transactions' => TransactionResource::collection($transactions),
-        ]);
+        ];
+
+        // Get the Nordigen transaction to link if one is provided
+        $nordigenTransactionToLink = Session::get(self::TRANSACTION_LINK_KEY);
+        if ($nordigenTransactionToLink) {
+            $transaction = NordigenTransaction::where('uuid', $nordigenTransactionToLink)
+                ->first();
+
+            $data['transactionToLink'] = NordigenTransactionResource::make($transaction);
+        }
+
+        return Inertia::render('transactions/show', $data);
+    }
+
+    public function linkTransaction(Request $request)
+    {
+        if (($uuid = $request->input('uuid'))) {
+            Session::flash(self::TRANSACTION_LINK_KEY, $uuid);
+        }
+
+        return to_route('transactions.show');
     }
 
     public function storeTransaction(Request $request)
     {
         $validator = Validator::make($request->all(), [
+            'transactionToLink' => 'nullable',
             'parentTransaction' => 'nullable',
             'date' => 'required|date',
             'name' => 'required|max:30',
@@ -45,25 +72,28 @@ class TransactionsController extends Controller
         // Run the built-in validation rules
         $validated = $validator->validate();
 
+        // Validate the payment method
         $paymentMethod = PaymentMethod::where('uuid', $validated['paymentMethod'])
             ->first();
 
         // Run custom validation rules
         $validated = $validator->after(function (\Illuminate\Validation\Validator $validator) use ($validated, $paymentMethod) {
-            if (abs($validated['amount']) < 1) {
-                $validator->errors()->add('amount', 'Amount must be at least one cent');
-
-                return;
-            }
+            // Check if the amount is valid (must be above zero)
+            $validator->errors()->addIf(
+                abs($validated['amount']) < 1,
+                'amount',
+                'Amount must be at least one cent'
+            );
 
             // Check if the payment method exists
-            if (! $paymentMethod) {
-                $validator->errors()->add('paymentMethod', 'This payment method does not exist');
-
-                return;
-            }
+            $validator->errors()->addIf(
+                ! $paymentMethod,
+                'paymentMethod',
+                'This payment method does not exist'
+            );
         })->validate();
 
+        // Save common data
         $transactionData = [
             ...$validated,
             'payment_method_id' => $paymentMethod->id,
@@ -75,10 +105,13 @@ class TransactionsController extends Controller
                 ->first();
 
             // Run custom validation rules
-            $validated = $validator->after(function (\Illuminate\Validation\Validator $validator) use ($parentTransaction) {
+            $validator->after(function (\Illuminate\Validation\Validator $validator) use ($parentTransaction) {
                 // Check if the parent transaction exists
                 if (! $parentTransaction) {
-                    $validator->errors()->add('parentTransaction', 'Parent transaction does not exists');
+                    $validator->errors()->add(
+                        'parentTransaction',
+                        'Parent transaction does not exist'
+                    );
 
                     return;
                 }
@@ -95,6 +128,25 @@ class TransactionsController extends Controller
             $transactionData['category'] = 'Split';
             $transactionData['parent_transaction_id'] = $parentTransaction->id;
             $transactionData['parent_transaction_order'] = $parentTransaction->splitTransactions()->max('parent_transaction_order') + 1;
+        }
+
+        // Handle Nordigen transaction link
+        if ($validated['transactionToLink']) {
+            $nordigenTransaction = NordigenTransaction::where('uuid', $validated['transactionToLink'])
+                ->first();
+
+            // Run custom validation rules
+            $validator->after(function (\Illuminate\Validation\Validator $validator) use ($nordigenTransaction) {
+                // Check if the Nordigen transaction exists
+                $validator->errors()->addIf(
+                    ! $nordigenTransaction,
+                    'transactionToLink',
+                    'The transaction to link does not exists'
+                );
+            })->validate();
+
+            // Set some fields
+            $transactionData['nordigen_transaction_id'] = $nordigenTransaction->id;
         }
 
         // Create the transaction

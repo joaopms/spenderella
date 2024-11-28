@@ -1,9 +1,13 @@
 <script>
-    import { Link } from "@inertiajs/svelte";
+    import { inertia, router } from "@inertiajs/svelte";
     import { setPageTitles } from "../../../utils/store.svelte.js";
 
     setPageTitles(["Transactions", "Linked Accounts"]);
     const { transactions } = $props();
+
+    function linkTransaction(uuid) {
+        router.post("/transactions/link", { uuid });
+    }
 </script>
 
 {#snippet pagination()}
@@ -13,9 +17,9 @@
         {#each meta.links as link}
             {#if link.url}
                 [
-                <Link href={link.url} only={["transactions"]}
-                    >{@html link.label}</Link
-                >
+                <a href={link.url} use:inertia={{ only: ["transactions"] }}>
+                    {@html link.label}
+                </a>
                 ]
             {:else}
                 <span>[{@html link.label}]</span>
@@ -42,6 +46,7 @@
                 <th>Account</th>
                 <th>Description</th>
                 <th>Amount</th>
+                <th>Linked</th>
             </tr>
         </thead>
         <tbody>
@@ -52,6 +57,15 @@
                     <td>{transaction.account.name}</td>
                     <td>{transaction.description}</td>
                     <td>{transaction.amount}</td>
+                    <td>
+                        <button
+                            onclick={() => linkTransaction(transaction.uuid)}
+                        >
+                            Link
+                        </button>
+
+                        {(transaction.linkedTransactionsUuid ?? []).length}
+                    </td>
                 </tr>
             {/each}
         </tbody>
