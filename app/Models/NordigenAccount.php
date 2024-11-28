@@ -37,6 +37,7 @@ class NordigenAccount extends Model
         'institution_bic',
         'name',
         'iban',
+        'is_credit',
     ];
 
     public function requisitions(): BelongsToMany

@@ -278,16 +278,18 @@ class NordigenService
                 continue;
             }
 
-            // Save the transaction
+            $amount = floatval($data['transactionAmount']['amount']) * 100; // save as cents
             $description = $data['remittanceInformationUnstructured']
                 ?? implode(' ', $data['remittanceInformationUnstructuredArray'] ?? []);
+
+            // Save the transaction
             $transactions[] = $account->transactions()->create([
                 'bank_id' => $bankId,
                 'nordigen_id' => $nordigenId,
                 'entry_reference' => $entryReference,
                 'booking_date' => $data['bookingDate'],
                 'value_date' => $data['valueDate'],
-                'amount' => floatval($data['transactionAmount']['amount']) * 100, // save as cents
+                'amount' => $account->is_credit ? -$amount : $amount, // if the account is credit, flip the amount sign
                 'currency' => $data['transactionAmount']['currency'],
                 'description' => $description,
             ]);
