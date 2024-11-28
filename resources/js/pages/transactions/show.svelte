@@ -1,10 +1,19 @@
 <script>
-    import { useForm } from "@inertiajs/svelte";
+    import { router, useForm } from "@inertiajs/svelte";
     import { DateTime } from "luxon";
     import { setPageTitles } from "../../utils/store.svelte.js";
 
     setPageTitles("Transactions");
-    const { paymentMethods, transactions, transactionToLink = null } = $props();
+    const {
+        storeTransactionsUrl,
+        linkTransactionUrl,
+
+        paymentMethods,
+        transactions,
+
+        transactionToLink: propTransactionToLink = null,
+    } = $props();
+    let transactionToLink = $state(propTransactionToLink);
 
     const newTForm = useForm({
         transactionToLink: null,
@@ -38,6 +47,7 @@
 
     function newTFormReset(e) {
         e.preventDefault();
+        transactionToLink = null;
         $newTForm.reset();
     }
 
@@ -55,10 +65,14 @@
 
                 return newData;
             })
-            .post("/transactions", {
+            .post(storeTransactionsUrl, {
                 preserveScroll: true,
                 // onSuccess: () => $newTForm.reset(),
             });
+    }
+
+    function linkTransaction(uuid) {
+        router.post(linkTransactionUrl, { uuid });
     }
 </script>
 
@@ -205,7 +219,9 @@
                     <th>Description</th>
                 {/if}
                 <th>Amount</th>
-                <th>Linked</th>
+                {#if !transactionToLink}
+                    <th>Linked</th>
+                {/if}
                 <!-- Add split transactions -->
                 {#if !isSplit}
                     <th></th>
@@ -228,9 +244,21 @@
                             {transaction.amountAfterSplit}
                         </span>
                     </td>
-                    <td>
-                        {transaction.linkedTransactionUuid ? "Yes" : "No"}
-                    </td>
+                    {#if !transactionToLink}
+                        <td>
+                            {#if transaction.linkedTransactionUuid}
+                                Yes
+                            {:else}
+                                <button
+                                    onclick={() =>
+                                        linkTransaction(transaction.uuid)}
+                                    disabled={!!transactionToLink}
+                                >
+                                    Link
+                                </button>
+                            {/if}
+                        </td>
+                    {/if}
                     {#if !isSplit}
                         <td>
                             <button
@@ -247,7 +275,7 @@
                 {#if !isSplit && transaction.split.length > 0}
                     <tr>
                         <td colspan="2"></td>
-                        <td colspan="5">
+                        <td colspan={transactionToLink ? 5 : 4}>
                             {@render transactionList(transaction.split, true)}
                         </td>
                         <td></td>

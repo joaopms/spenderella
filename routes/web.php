@@ -21,10 +21,15 @@ Route::get('/settings', [SettingsController::class, 'show'])->name('settings.sho
 Route::post('/settings/payment-method', [SettingsController::class, 'storePaymentMethod']);
 
 Route::get('/transactions', [TransactionsController::class, 'show'])->name('transactions.show');
-Route::post('/transactions', [TransactionsController::class, 'storeTransaction']);
-Route::post('/transactions/link', [TransactionsController::class, 'linkTransaction']);
+Route::post('/transactions', [TransactionsController::class, 'storeTransaction'])->name('transactions.store');
+// Called by a Nordigen transaction
+Route::post('/transactions/link', [TransactionsController::class, 'linkTransaction'])->name('transactions.link');
+// Called by a Nordigen transaction
+Route::post('/transactions/{transaction}/link', [TransactionsController::class, 'linkNordigenTransaction'])->name('transactions.transaction.link');
 
 Route::get('/linked-accounts/transactions', [LinkedAccountsController::class, 'showTransactions'])->name('linked-accounts.transactions.show-all');
+// Called by a transaction
+Route::post('/linked-accounts/transactions/link', [LinkedAccountsController::class, 'linkTransaction'])->name('linked-accounts.transactions.link');
 
 // -----------------------
 

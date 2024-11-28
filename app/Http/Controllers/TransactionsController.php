@@ -16,7 +16,7 @@ use Inertia\Inertia;
 
 class TransactionsController extends Controller
 {
-    private const TRANSACTION_LINK_KEY = 'transaction-link';
+    private const TRANSACTION_LINK_KEY = 'nordigen-transaction-link';
 
     public function show(Request $request)
     {
@@ -31,6 +31,8 @@ class TransactionsController extends Controller
             ->get();
 
         $data = [
+            'storeTransactionUrl' => route('transactions.store'),
+            'linkTransactionUrl' => route('linked-accounts.transactions.link'),
             'paymentMethods' => PaymentMethodSelectionResource::collection($paymentMethods),
             'transactions' => TransactionResource::collection($transactions),
         ];
@@ -52,6 +54,22 @@ class TransactionsController extends Controller
         if (($uuid = $request->input('uuid'))) {
             Session::flash(self::TRANSACTION_LINK_KEY, $uuid);
         }
+
+        return to_route('transactions.show');
+    }
+
+    public function linkNordigenTransaction(Request $request, Transaction $transaction)
+    {
+        // Get the Nordigen transaction
+        $nordigenTransaction = NordigenTransaction::where('uuid', $request->input('uuid'))
+            ->firstOrFail();
+
+        // TODO Check if we're replacing an already existing link?
+        // if ($transaction->nordigenTransaction) { }
+
+        // Link the transaction to the Nordigen transaction
+        $transaction->nordigen_transaction_id = $nordigenTransaction->id;
+        $transaction->save();
 
         return to_route('transactions.show');
     }

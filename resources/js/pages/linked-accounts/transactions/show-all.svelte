@@ -3,10 +3,26 @@
     import { setPageTitles } from "../../../utils/store.svelte.js";
 
     setPageTitles(["Transactions", "Linked Accounts"]);
-    const { transactions } = $props();
+    const {
+        linkToTransactionUrl,
+        linkNordigenTransactionToTransactionUrl,
+
+        transactions,
+        transactionToLink,
+    } = $props();
 
     function linkTransaction(uuid) {
-        router.post("/transactions/link", { uuid });
+        if (transactionToLink) {
+            // Linking a transaction to a Nordigen transaction
+            const url = linkNordigenTransactionToTransactionUrl.replace(
+                "%uuid%",
+                transactionToLink.data.uuid,
+            );
+            router.post(url, { uuid });
+        } else {
+            // Linking a Nordigen transaction to a transaction
+            router.post(linkToTransactionUrl, { uuid });
+        }
     }
 </script>
 
@@ -33,6 +49,10 @@
 <h1>Linked Accounts</h1>
 
 <h2>Transactions</h2>
+
+{#if transactionToLink}
+    <p>Linking to transaction</p>
+{/if}
 
 <!-- Transaction list -->
 <section>
