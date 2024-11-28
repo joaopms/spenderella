@@ -5,7 +5,7 @@
 
     setPageTitles("Transactions");
     const {
-        storeTransactionsUrl,
+        storeTransactionUrl,
         linkTransactionUrl,
 
         paymentMethods,
@@ -29,8 +29,8 @@
     });
 
     // Pre-fill the form when linking to a transaction from a linked account
-    if (transactionToLink) {
-        const data = transactionToLink.data;
+    if (propTransactionToLink) {
+        const data = propTransactionToLink.data;
 
         $newTForm.transactionToLink = data.uuid;
         $newTForm.date = data.date;
@@ -65,9 +65,9 @@
 
                 return newData;
             })
-            .post(storeTransactionsUrl, {
+            .post(storeTransactionUrl, {
                 preserveScroll: true,
-                // onSuccess: () => $newTForm.reset(),
+                onSuccess: () => $newTForm.reset(),
             });
     }
 
