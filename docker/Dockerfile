@@ -2,6 +2,7 @@
 FROM php:8.3-fpm-alpine
 
 RUN apk --no-cache add \
+    npm \
     nginx \
     supervisor \
     icu \
