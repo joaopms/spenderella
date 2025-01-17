@@ -2367,16 +2367,16 @@
         },
         {
             "name": "nordigen/nordigen-php",
-            "version": "1.1.1",
+            "version": "1.1.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nordigen/nordigen-php.git",
-                "reference": "1770384ceb8042c7275cb0e404d8b7131bdccc56"
+                "reference": "573a9935fc7444ba84d0cdd7dba46e033dbf7bd5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nordigen/nordigen-php/zipball/1770384ceb8042c7275cb0e404d8b7131bdccc56",
-                "reference": "1770384ceb8042c7275cb0e404d8b7131bdccc56",
+                "url": "https://api.github.com/repos/nordigen/nordigen-php/zipball/573a9935fc7444ba84d0cdd7dba46e033dbf7bd5",
+                "reference": "573a9935fc7444ba84d0cdd7dba46e033dbf7bd5",
                 "shasum": ""
             },
             "require": {
@@ -2416,9 +2416,9 @@
             ],
             "support": {
                 "issues": "https://github.com/nordigen/nordigen-php/issues",
-                "source": "https://github.com/nordigen/nordigen-php/tree/1.1.1"
+                "source": "https://github.com/nordigen/nordigen-php/tree/1.1.2"
             },
-            "time": "2023-06-22T10:53:06+00:00"
+            "time": "2024-02-13T14:06:32+00:00"
         },
         {
             "name": "nunomaduro/termwind",
@@ -9104,6 +9104,6 @@
         "php": "^8.1",
         "ext-intl": "*"
     },
-    "platform-dev": {},
+    "platform-dev": [],
     "plugin-api-version": "2.6.0"
 }
