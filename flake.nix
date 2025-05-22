@@ -2,7 +2,7 @@
   description = "Spenderella Development Environment";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
   };
 
   outputs = {
@@ -14,8 +14,8 @@
   in {
     devShells.${system}.default = pkgs.mkShell {
       packages = with pkgs; [
-        php # 8.2
-        php82Packages.composer
+        php84 # 8.2
+        php84Packages.composer
       ];
 
       shellHook = ''
