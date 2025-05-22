@@ -13,9 +13,12 @@ return new class extends Migration
     {
         Schema::create('nordigen_sync_results', function (Blueprint $table) {
             $table->id();
-            $table->uuid('uuid')->unique();
+            $table->char('uuid', 36)->unique();
 
-            $table->foreignUuid('batch_id')->constrained('job_batches');
+            // MySQL driver set created UUID columns as char(36)
+            // Migration to MariaDB drive: UUID columns are uuid
+            // For backwards compatibility, foreignUlid is used because it uses the legacy char(36)
+            $table->foreignUlid('batch_id', 36)->constrained('job_batches');
             $table->foreignId('nordigen_account_id')->constrained('nordigen_accounts');
             $table->unsignedSmallInteger('attempt');
 

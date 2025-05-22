@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('nordigen_agreements', function (Blueprint $table) {
             $table->id('id');
-            $table->uuid('uuid')->unique();
+            $table->char('uuid', 36)->unique();
 
             $table->string('nordigen_id');
             $table->string('institution_id');

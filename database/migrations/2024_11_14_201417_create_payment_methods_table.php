@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('payment_methods', function (Blueprint $table) {
             $table->id();
-            $table->uuid('uuid')->unique();
+            $table->char('uuid', 36)->unique();
 
             $table->string('name');
             $table->enum('type', ['bank_account', 'credit_card', 'cash'])->nullable();

@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('nordigen_accounts', function (Blueprint $table) {
             $table->id('id');
-            $table->uuid('uuid')->unique();
+            $table->char('uuid', 36)->unique();
 
             $table->string('nordigen_id');
             $table->string('currency', 3);
