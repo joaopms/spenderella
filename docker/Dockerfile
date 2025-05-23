@@ -1,5 +1,5 @@
 # Heavily inspired by https://github.com/jdsantos/laravel-alpine-nginx-phpfpm-opcache-docker
-FROM php:8.3-fpm-alpine
+FROM php:8.4-fpm-alpine
 
 RUN apk --no-cache add \
     npm \
