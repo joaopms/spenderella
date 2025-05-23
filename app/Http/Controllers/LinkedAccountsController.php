@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\NordigenTransactionResource;
 use App\Http\Resources\TransactionResource;
+use App\Models\NordigenAccount;
 use App\Models\NordigenTransaction;
 use App\Models\Transaction;
+use App\Services\NordigenService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Inertia\Inertia;
@@ -49,5 +51,12 @@ class LinkedAccountsController extends Controller
         }
 
         return to_route('linked-accounts.transactions.show-all');
+    }
+
+    public function renewAccess(NordigenAccount $account, NordigenService $nordigenService)
+    {
+        $requisition = $nordigenService->newRequisition($account->institution_id);
+
+        return Inertia::location($requisition->link);
     }
 }

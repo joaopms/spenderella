@@ -19,6 +19,8 @@ Route::post('/transactions/{transaction}/link', [TransactionsController::class, 
 Route::get('/linked-accounts/transactions', [LinkedAccountsController::class, 'showTransactions'])->name('linked-accounts.transactions.show-all');
 // Called by a transaction
 Route::post('/linked-accounts/transactions/link', [LinkedAccountsController::class, 'linkTransaction'])->name('linked-accounts.transactions.link');
+// Called from settings
+Route::post('/linked-accounts/{account}/renew-access', [LinkedAccountsController::class, 'renewAccess'])->name('linked-accounts.transactions.renew-access');
 
 // -----------------------
 

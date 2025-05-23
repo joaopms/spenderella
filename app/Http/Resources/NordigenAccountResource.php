@@ -19,6 +19,8 @@ class NordigenAccountResource extends JsonResource
             'name' => $this->name,
             'institutionName' => $this->institution_name,
             'iban' => $this->iban,
+            'validUntil' => $this->valid_until->toDateString(),
+            'isExpired' => $this->last_agreement->isExpired(),
         ];
     }
 }

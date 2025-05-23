@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasVersion4Uuids as HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -67,16 +68,22 @@ class NordigenAccount extends Model
         });
     }
 
-    public function getLastAgreement(): NordigenAgreement
+    public function lastAgreement(): Attribute
     {
-        /** @var NordigenAgreement $latest */
-        $latest = $this->getAgreements()->latest()->first();
+        return new Attribute(
+            get: fn () => $this->getAgreements()->latest()->first()
+        );
+    }
 
-        return $latest;
+    public function validUntil(): Attribute
+    {
+        return new Attribute(
+            get: fn () => $this->last_agreement->access_valid_until
+        );
     }
 
     public function canSyncTransactions(): bool
     {
-        return ! $this->getLastAgreement()->isExpired();
+        return ! $this->last_agreement->isExpired();
     }
 }

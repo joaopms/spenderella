@@ -22,9 +22,7 @@ class NordigenService
 
     private const CACHE_INSTITUTIONS = 'nordigen.institutions';
 
-    public function __construct(protected NordigenClient $client)
-    {
-    }
+    public function __construct(protected NordigenClient $client) {}
 
     /**
      * Returns all supported institutions, grouped and sorted by country code
@@ -78,8 +76,12 @@ class NordigenService
     /**
      * Creates a Nordigen end user agreement and save it to the database
      */
-    public function createEndUserAgreement(string $institutionId, int $daysOfAccess): NordigenAgreement
+    public function createEndUserAgreement(string $institutionId): NordigenAgreement
     {
+        // Get the maximum days of access for this institution
+        $institution = $this->getInstitutionById($institutionId);
+        $daysOfAccess = (int) $institution['max_access_valid_for_days'];
+
         // Create the end user agreement on Nordigen's side
         $agreementData = $this->client->endUserAgreementCreate($institutionId, $daysOfAccess);
 
@@ -99,13 +101,7 @@ class NordigenService
     {
         DB::beginTransaction();
 
-        // Get the maximum days of access for this institution
-        $institution = $this->getInstitutionById($institutionId);
-        $daysOfAccess = (int) $institution['max_access_valid_for_days'];
-
-        // Create the end user agreement
-        $agreement = $this->createEndUserAgreement($institutionId, $daysOfAccess);
-        $agreement->save(); // Saving so we can use the ID when creating the requisition
+        $agreement = $this->createEndUserAgreement($institutionId);
 
         // Create the requisition
         $requisition = $agreement->requisition()->create();
@@ -114,7 +110,7 @@ class NordigenService
         $redirectUrl = route('nordigen.callback');
         $requisitionData = $this->client->requisitionCreate(
             $redirectUrl,
-            $institutionId,
+            $agreement->institution_id,
             $agreement->nordigen_id,
             $requisition->uuid // Used as the requisition reference
         );

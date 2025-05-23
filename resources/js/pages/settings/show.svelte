@@ -1,5 +1,5 @@
 <script>
-    import { useForm } from "@inertiajs/svelte";
+    import { router, useForm } from "@inertiajs/svelte";
     import { setPageTitles } from "../../utils/store.svelte.js";
 
     setPageTitles("Settings");
@@ -23,6 +23,14 @@
             onSuccess: () => $pmForm.reset(),
         });
     }
+
+    async function linkedAccountRenew(uuid) {
+        router.post(
+            route("linked-accounts.transactions.renew-access", {
+                account: uuid,
+            }),
+        );
+    }
 </script>
 
 <h1>Settings</h1>
@@ -37,14 +45,24 @@
                 <th>Name</th>
                 <th>Institution</th>
                 <th>IBAN</th>
+                <th>Valid Until</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
-            {#each linkedAccounts.data as { name, institutionName, iban }}
+            {#each linkedAccounts.data as account}
                 <tr>
-                    <td>{name}</td>
-                    <td>{institutionName}</td>
-                    <td>{iban}</td>
+                    <td>{account.name}</td>
+                    <td>{account.institutionName}</td>
+                    <td>{account.iban}</td>
+                    <td>{account.validUntil} (expired: {account.isExpired})</td>
+                    <td>
+                        <button
+                            onclick={() => linkedAccountRenew(account.uuid)}
+                        >
+                            Renew access
+                        </button>
+                    </td>
                 </tr>
             {/each}
         </tbody>
