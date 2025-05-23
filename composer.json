@@ -18,6 +18,7 @@
         "nordigen/nordigen-php": "^1.1"
     },
     "require-dev": {
+        "barryvdh/laravel-debugbar": "dev-feat/custom-inertia-view-path",
         "fakerphp/faker": "^1.23",
         "laravel/pail": "^1.2.2",
         "laravel/pint": "^1.13",
@@ -28,6 +29,12 @@
         "phpunit/phpunit": "^11.5.3",
         "spatie/laravel-ignition": "^2.0"
     },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/joaopms/laravel-debugbar"
+        }
+    ],
     "autoload": {
         "psr-4": {
             "App\\": "app/",
