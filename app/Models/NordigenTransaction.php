@@ -38,6 +38,7 @@ class NordigenTransaction extends Model
         'amount',
         'currency',
         'description',
+        'raw',
     ];
 
     protected $casts = [

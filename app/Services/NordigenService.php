@@ -10,7 +10,6 @@ use App\Models\NordigenAgreement;
 use App\Models\NordigenRequisition;
 use App\Models\NordigenTransaction;
 use Carbon\Carbon;
-use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -288,6 +287,7 @@ class NordigenService
                 'amount' => $account->is_credit ? -$amount : $amount, // if the account is credit, flip the amount sign
                 'currency' => $data['transactionAmount']['currency'],
                 'description' => $description,
+                'raw' => json_encode($data),
             ]);
 
             Log::debug('Saving transaction', [
