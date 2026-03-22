@@ -18,6 +18,8 @@ return [
 
     'enabled' => env('TELESCOPE_ENABLED', true),
 
+    'force_enabled' => env('TELESCOPE_FORCE_ENABLED', false),
+
     /*
     |--------------------------------------------------------------------------
     | Telescope Domain
