@@ -9,6 +9,9 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
+/**
+ * @see \Tests\Feature\Listeners\SendNordigenSyncedNotificationTest
+ */
 class SendNordigenSyncedNotification implements ShouldQueue
 {
     public function handle(NordigenAccountsSynced $event): void

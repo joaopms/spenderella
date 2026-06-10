@@ -3,7 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Bus\Batch;
+use Illuminate\Database\Eloquent\Concerns\HasTimestamps;
 use Illuminate\Database\Eloquent\Concerns\HasVersion4Uuids as HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
@@ -11,6 +13,8 @@ use Throwable;
 
 class NordigenSyncResult extends Model
 {
+    use HasFactory;
+    use HasTimestamps;
     use HasUuids;
 
     private NordigenAccount $account;
