@@ -14,7 +14,7 @@ class NordigenClient
 
     private \Nordigen\NordigenPHP\API\NordigenClient $client;
 
-    public function __construct(string $secretId, string $secretKey, ClientInterface $clientInterface = null)
+    public function __construct(string $secretId, string $secretKey, ?ClientInterface $clientInterface = null)
     {
         $this->client = new \Nordigen\NordigenPHP\API\NordigenClient($secretId, $secretKey, $clientInterface);
         $this->initializeClient();

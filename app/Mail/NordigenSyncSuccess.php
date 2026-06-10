@@ -21,8 +21,7 @@ class NordigenSyncSuccess extends Mailable
         private readonly array $successes,
         private readonly array $fails,
         private readonly int $numTransactions
-    ) {
-    }
+    ) {}
 
     public function envelope(): Envelope
     {

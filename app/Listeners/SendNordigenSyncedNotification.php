@@ -8,9 +8,10 @@ use App\Models\NordigenSyncResult;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Tests\Feature\Listeners\SendNordigenSyncedNotificationTest;
 
 /**
- * @see \Tests\Feature\Listeners\SendNordigenSyncedNotificationTest
+ * @see SendNordigenSyncedNotificationTest
  */
 class SendNordigenSyncedNotification implements ShouldQueue
 {

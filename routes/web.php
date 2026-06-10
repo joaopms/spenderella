@@ -4,6 +4,7 @@ use App\Http\Controllers\LinkedAccountsController;
 use App\Http\Controllers\PlaygroundController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\TransactionsController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/settings', [SettingsController::class, 'show'])->name('settings.show');
@@ -28,7 +29,7 @@ Route::get('/accounts/new', [PlaygroundController::class, 'listInstitutions'])->
 
 Route::get('/nordigen/new/{institutionId}', [PlaygroundController::class, 'createRequisition'])->name('nordigen.new');
 Route::get('/nordigen/callback/{requisition}', [PlaygroundController::class, 'handleRequisition'])->name('nordigen.callback.requisition');
-Route::get('/nordigen/callback', function (Illuminate\Http\Request $request) {
+Route::get('/nordigen/callback', function (Request $request) {
     // Convert /nordigen/callback?ref=xxx to /nordigen/callback/xxx so route model binding works
     return redirect()->route(
         'nordigen.callback.requisition',

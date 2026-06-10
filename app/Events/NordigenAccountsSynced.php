@@ -9,7 +9,5 @@ class NordigenAccountsSynced
 {
     use Dispatchable, SerializesModels;
 
-    public function __construct(public string $batchId)
-    {
-    }
+    public function __construct(public string $batchId) {}
 }

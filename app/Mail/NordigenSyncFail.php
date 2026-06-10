@@ -13,9 +13,7 @@ class NordigenSyncFail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public function __construct(public ?Throwable $exception)
-    {
-    }
+    public function __construct(public ?Throwable $exception) {}
 
     public function envelope(): Envelope
     {

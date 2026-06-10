@@ -10,7 +10,5 @@ class NordigenAccountsSyncFailed
 {
     use Dispatchable, SerializesModels;
 
-    public function __construct(public ?Throwable $exception)
-    {
-    }
+    public function __construct(public ?Throwable $exception) {}
 }

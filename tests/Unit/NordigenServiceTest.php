@@ -1,16 +1,18 @@
 <?php
 
 uses(
-    Tests\TestCase::class,
-    Illuminate\Foundation\Testing\RefreshDatabase::class,
+    TestCase::class,
+    RefreshDatabase::class,
 );
 
+use App\Integrations\Nordigen\NordigenClient;
 use App\Models\NordigenAgreement;
 use App\Services\NordigenService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery\MockInterface;
+use Tests\TestCase;
 
-beforeEach(function () {
-});
+beforeEach(function () {});
 
 it('creates an end user agreement', function () {
     $institutionId = 'FAKEINSTITUTION';
@@ -20,7 +22,7 @@ it('creates an end user agreement', function () {
         'created' => now()->toISOString(),
     ];
 
-    $mock = $this->mock(\App\Integrations\Nordigen\NordigenClient::class, function (MockInterface $mock) use ($mockedRequisitionData) {
+    $mock = $this->mock(NordigenClient::class, function (MockInterface $mock) use ($mockedRequisitionData) {
         $mock->shouldReceive('endUserAgreementCreate')
             ->once()
             ->andReturn($mockedRequisitionData);
@@ -32,7 +34,7 @@ it('creates an end user agreement', function () {
     expect(NordigenAgreement::count())->toBe(1);
 });
 
-//it('should create a new requisition', function () {
+// it('should create a new requisition', function () {
 //    $mockedRequisitionData = [
 //        'id' => '76f487ad-bdd9-4b38-bbe1-0d2ccb38dc5c',
 //        'link' => 'https://ob.gocardless.com/psd2/start/76f487ad-bdd9-4b38-bbe1-0d2ccb38dc5c/SANDBOXFINANCE_SFIN0000',
@@ -61,4 +63,4 @@ it('creates an end user agreement', function () {
 //
 //    expect(\App\Models\NordigenRequisition::count())->toBe(1)
 //        ->and($requisition->toArray())->toContain(...$mockedRequisitionData);
-//});
+// });

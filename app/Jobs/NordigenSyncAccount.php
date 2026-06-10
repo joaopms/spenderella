@@ -22,9 +22,7 @@ class NordigenSyncAccount implements ShouldQueue
 
     public array $backoff = NordigenSyncAllAccounts::BACKOFF;
 
-    public function __construct(private NordigenAccount $account)
-    {
-    }
+    public function __construct(private NordigenAccount $account) {}
 
     /**
      * @throws Throwable

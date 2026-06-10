@@ -1,8 +1,12 @@
 <?php
 
-return [
-    App\Providers\AppServiceProvider::class,
-    App\Providers\TelescopeServiceProvider::class,
+use App\Providers\AppServiceProvider;
+use App\Providers\NordigenServiceProvider;
+use App\Providers\TelescopeServiceProvider;
 
-    App\Providers\NordigenServiceProvider::class,
+return [
+    AppServiceProvider::class,
+    TelescopeServiceProvider::class,
+
+    NordigenServiceProvider::class,
 ];
