@@ -275,7 +275,8 @@ class NordigenService
 
             $amount = floatval($data['transactionAmount']['amount']) * 100; // save as cents
             $description = $data['remittanceInformationUnstructured']
-                ?? implode(' ', $data['remittanceInformationUnstructuredArray'] ?? []);
+                ?? implode(' ', $data['remittanceInformationUnstructuredArray'] ?? [])
+                ?? $data['remittanceInformationStructured'] ?? '';
 
             // Save the transaction
             $transactions[] = $account->transactions()->create([
@@ -284,7 +285,7 @@ class NordigenService
                 'entry_reference' => $entryReference,
                 'booking_date' => $data['bookingDate'],
                 'value_date' => $data['valueDate'],
-                'amount' => $account->is_credit ? -$amount : $amount, // if the account is credit, flip the amount sign
+                'amount' => $account->is_credit ? -$amount : $amount,
                 'currency' => $data['transactionAmount']['currency'],
                 'description' => $description,
                 'raw' => json_encode($data),
